@@ -31,8 +31,6 @@ class RobotStat(BaseRobot):
             self.driver.execute_script(WINDOW_ACTIVITY_SCRIPT)
             logger.info("[START OPEN URL] Открыл сайт: cabinet.stat.gov.kz")
             
-
-
             self.driver.click_element(By.XPATH, '//a[@id="idLogin" and @href="#" and text()="Войти"]')
 
             self.driver.click_element(By.XPATH, '//div[@id="container-1076-innerCt"]//span[@id="button-1077-btnInnerEl" and text()="Согласен"]')
@@ -42,8 +40,6 @@ class RobotStat(BaseRobot):
             self.driver.click_element(By.XPATH, '//input[@type="submit" and @id="loginButton" and @value="Войти в систему"]', wait_for_visibility=True)
 
 
-            
-
         except Exception as Err:
             logger.error(f"[START CLASS ROBOT] Ошибка при выполнении start_navigation: {Err}")
             self.driver.quit()
@@ -52,7 +48,6 @@ class RobotStat(BaseRobot):
     def authenticate_proccess(self, selected_path):
         """Выполнить авторизацию"""
         logger.debug(f'path_in_auth={selected_path}')
-    
 
         try:
             # self.state = RobotState.AUTH_STARTED
@@ -68,6 +63,10 @@ class RobotStat(BaseRobot):
         
         except Exception as e:
             logger.error(f"[AUTH ERROR] Произошла ошибка при авторизации: {e}")
+
+    def reports_proccess(self):
+        self.driver.click_element(By.XPATH, '//span[@class="x-tab-inner x-tab-inner-center" and text()="Мои отчёты"]')
+
 
 
 def _activate_window_and_input(window_title, input_text, action_description):

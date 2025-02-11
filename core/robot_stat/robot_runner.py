@@ -16,13 +16,19 @@ def start_robot_service_stat(robot: RobotStat, selected_path: str) -> bool:
     try:
         # [START]
         logger.info("[NAVIGATION SUCCESS] Навигация началась успешно")
-        robot.start_navigation()
+        robot.navigation_proccess()
         logger.info("[NAVIGATION SUCCESS] Навигация завершена успешно")
 
+        # [AUTH]
         logger.info("[AUTH SUCCESS] Авторизация началась успешно")
-        robot.authenticate(selected_path)
+        robot.authenticate_proccess(selected_path)
         logger.info("[AUTH SUCCESS] Авторизация завершена успешно")
         
+        logger.info("[REPORTS SUCCESS] Отчеты собраны началась успешно")
+        robot.reports_proccess()
+        logger.info("[REPORTS SUCCESS] Отчеты собраны завершена успешно")
+
+
         # [END]
         logger.info("[GGWP] Робот успешно завершил все этапы запуска")
 
