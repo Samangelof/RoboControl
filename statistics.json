@@ -1,0 +1,86 @@
+[
+    {
+        "run_id": "2025-02-11T01:17:49.713892",
+        "start_time": "2025-02-11T01:17:49.713892",
+        "parameters": {
+            "path": "C:/Users/Samangelof/Documents/эцп т"
+        },
+        "status": "success",
+        "navigation_status": "success",
+        "authentication_status": "success",
+        "end_time": "2025-02-11T01:19:33.761042",
+        "duration": 104.04715
+    },
+    {
+        "run_id": "2025-02-11T01:20:53.774366",
+        "start_time": "2025-02-11T01:20:53.774366",
+        "parameters": {
+            "path": "C:/Users/Samangelof/Documents/эцп т"
+        },
+        "status": "success",
+        "navigation_status": "success",
+        "authentication_status": "success",
+        "end_time": "2025-02-11T01:21:03.838113",
+        "duration": 10.063747
+    },
+    {
+        "run_id": "2025-02-11T01:32:39.532766",
+        "start_time": "2025-02-11T01:32:39.532766",
+        "parameters": {
+            "path": "C:/Users/Samangelof/Documents/эцп т"
+        },
+        "status": "success",
+        "navigation_status": "success",
+        "authentication_status": "success",
+        "end_time": "2025-02-11T01:32:52.228708",
+        "duration": 12.695942
+    },
+    {
+        "run_id": "2025-02-11T01:33:18.727884",
+        "start_time": "2025-02-11T01:33:18.727884",
+        "parameters": {
+            "path": "C:/Users/Samangelof/Documents/эцп т"
+        },
+        "status": "success",
+        "navigation_status": "success",
+        "authentication_status": "success",
+        "end_time": "2025-02-11T01:33:33.086611",
+        "duration": 14.358727
+    },
+    {
+        "run_id": "2025-02-11T04:06:39.558289",
+        "start_time": "2025-02-11T04:06:39.558289",
+        "parameters": {
+            "path": "C:/Users/Samangelof/Documents/эцп т"
+        },
+        "status": "success",
+        "navigation_status": "success",
+        "authentication_status": "success",
+        "end_time": "2025-02-11T04:07:21.055530",
+        "duration": 41.497241
+    },
+    {
+        "run_id": "2025-02-11T04:35:54.220453",
+        "start_time": "2025-02-11T04:35:54.220453",
+        "parameters": {
+            "path": "C:/Users/Samangelof/Documents/эцп т"
+        },
+        "status": "success",
+        "navigation_status": "success",
+        "authentication_status": "success",
+        "end_time": "2025-02-11T04:36:08.466027",
+        "duration": 14.245574
+    },
+    {
+        "run_id": "2025-02-11T04:48:03.694959",
+        "start_time": "2025-02-11T04:48:03.694959",
+        "parameters": {
+            "path": "C:/Users/Samangelof/Documents/эцп т"
+        },
+        "status": "success",
+        "navigation_status": "success",
+        "authentication_status": "success",
+        "end_time": "2025-02-11T04:48:33.964947",
+        "duration": 30.269988
+    }
+]
