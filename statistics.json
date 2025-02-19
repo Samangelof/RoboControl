@@ -82,5 +82,125 @@
         "authentication_status": "success",
         "end_time": "2025-02-11T04:48:33.964947",
         "duration": 30.269988
+    },
+    {
+        "run_id": "2025-02-19T10:36:13.014959",
+        "start_time": "2025-02-19T10:36:13.014959",
+        "parameters": {
+            "path": "C:/Users/Samangelof/Documents/эцп т"
+        },
+        "status": "success",
+        "navigation_status": "success",
+        "authentication_status": "success",
+        "end_time": "2025-02-19T10:36:23.928575",
+        "duration": 10.913616
+    },
+    {
+        "run_id": "2025-02-19T10:37:14.918477",
+        "start_time": "2025-02-19T10:37:14.918477",
+        "parameters": {
+            "path": "C:/Users/Samangelof/Documents/эцп т"
+        },
+        "status": "success",
+        "navigation_status": "success",
+        "authentication_status": "success",
+        "end_time": "2025-02-19T10:37:24.458287",
+        "duration": 9.53981
+    },
+    {
+        "run_id": "2025-02-19T10:39:31.951189",
+        "start_time": "2025-02-19T10:39:31.951189",
+        "parameters": {
+            "path": "C:/Users/Samangelof/Documents/эцп т"
+        },
+        "status": "success",
+        "navigation_status": "success",
+        "authentication_status": "success",
+        "end_time": "2025-02-19T10:39:37.212110",
+        "duration": 5.260921
+    },
+    {
+        "run_id": "2025-02-19T16:24:23.424442",
+        "start_time": "2025-02-19T16:24:23.424442",
+        "parameters": {
+            "path": "C:/Users/Samangelof/Documents/эцп т"
+        },
+        "status": "success",
+        "navigation_status": "success",
+        "authentication_status": "success",
+        "end_time": "2025-02-19T16:24:28.687671",
+        "duration": 5.263229
+    },
+    {
+        "run_id": "2025-02-19T16:28:28.815617",
+        "start_time": "2025-02-19T16:28:28.815617",
+        "parameters": {
+            "path": "C:/Users/Samangelof/Documents/эцп т"
+        },
+        "status": "success",
+        "navigation_status": "success",
+        "authentication_status": "success",
+        "end_time": "2025-02-19T16:28:51.413923",
+        "duration": 22.598306
+    },
+    {
+        "run_id": "2025-02-19T16:29:55.883668",
+        "start_time": "2025-02-19T16:29:55.883668",
+        "parameters": {
+            "path": "C:/Users/Samangelof/Documents/эцп т"
+        },
+        "status": "success",
+        "navigation_status": "success",
+        "authentication_status": "success",
+        "end_time": "2025-02-19T16:30:13.758486",
+        "duration": 17.874818
+    },
+    {
+        "run_id": "2025-02-19T17:41:53.300141",
+        "start_time": "2025-02-19T17:41:53.300141",
+        "parameters": {
+            "path": "C:/Users/Samangelof/Documents/эцп т"
+        },
+        "status": "success",
+        "navigation_status": "success",
+        "authentication_status": "success",
+        "end_time": "2025-02-19T17:42:15.348819",
+        "duration": 22.048678
+    },
+    {
+        "run_id": "2025-02-19T17:43:51.670236",
+        "start_time": "2025-02-19T17:43:51.670236",
+        "parameters": {
+            "path": "C:/Users/Samangelof/Documents/эцп т"
+        },
+        "status": "success",
+        "navigation_status": "success",
+        "authentication_status": "success",
+        "end_time": "2025-02-19T17:44:17.192646",
+        "duration": 25.52241
+    },
+    {
+        "run_id": "2025-02-19T18:08:44.765029",
+        "start_time": "2025-02-19T18:08:44.765029",
+        "parameters": {
+            "path": "C:/Users/Samangelof/Documents/эцп т"
+        },
+        "status": "success",
+        "navigation_status": "success",
+        "authentication_status": "success",
+        "end_time": "2025-02-19T18:08:53.194600",
+        "duration": 8.429571
+    },
+    {
+        "run_id": "2025-02-19T18:16:02.688468",
+        "start_time": "2025-02-19T18:16:02.688468",
+        "parameters": {
+            "path": "C:/Users/Samangelof/Documents/эцп т"
+        },
+        "status": "success",
+        "navigation_status": "success",
+        "authentication_status": "success",
+        "end_time": "2025-02-19T18:16:10.901069",
+        "duration": 8.212601
     }
 ]

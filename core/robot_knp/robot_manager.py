@@ -7,7 +7,9 @@ from core.services.robot_dependencies.selenium_driver import SeleniumDriver
 from core.services.robot_dependencies.selenium_scripts import WINDOW_ACTIVITY_SCRIPT
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.common.exceptions import NoSuchElementException
 from core.robot_isna.robot_state import RobotState
+from core.base_robot import BaseRobot
 from core.services.utils.common_utils import (
     extract_password_from_folder_name, 
     find_eds_file,
@@ -15,7 +17,6 @@ from core.services.utils.common_utils import (
     close_eds_window
 )
 from settings.logger import setup_logger
-from core.base_robot import BaseRobot
 
 
 logger = setup_logger(__name__)
@@ -43,8 +44,9 @@ class RobotKNP(BaseRobot):
             logger.error(f"[START CLASS ROBOT] Ошибка при выполнении start_navigation: {Err}")
             self.driver.quit()
             raise
+
 #! ПРИ ВХОДЕ В СИСТЕМУ 
-#! И В СЛУЧАЕ ОШИБКИ НАПРИМЕР,(ИСТЕК СЕРТИФИКАТ, НЕВЕРНЫЙ ПАРОЛЬ)
+#! И В СЛУЧАЕ ОШИБКИ НАПРИМЕР(ИСТЕК СЕРТИФИКАТ, НЕВЕРНЫЙ ПАРОЛЬ)
 #! ПРОПУСКАТЬ ТАКИЕ ЭЦП И 'УВЕДОМЛЯТЬ' ОБ ЭТОМ
     def authenticate_proccess(self, selected_path):
         logger.debug(f'path_in_auth={selected_path}')
@@ -74,8 +76,26 @@ class RobotKNP(BaseRobot):
                         file_input.send_keys(eds_file)
                         logger.debug(f"[AUTH SELECT FILE] Файл выбран: {eds_file}")
                         password_field = self.driver.find_element(By.XPATH, "//input[@type='password' and @class='listBox form-control' and not(@disabled)]")
+                        password_field.clear()
                         password_field.send_keys(password)
                         self.driver.click_element(By.XPATH, "//button[contains(text(), 'Ok') and not(@disabled)]", "[AUTH CLICK ELEMENT 'OK'] Нажата кнопка 'Ok'")
+
+                        # Проверяем появление ошибок
+                        alert = self.driver.find_element(By.XPATH, "//div[contains(@class, 'alert-danger')]", wait_time=2)
+
+                        if alert:
+                            alert_text = alert.text.strip() if alert.text else ""
+
+                            if "Срок действия Вашего сертификата" in alert_text:
+                                logger.warning(f"[AUTH SKIP] Сертификат в {subdir} истек, пропускаем.")
+                                continue
+
+                            if "Введите верный пароль" in alert_text:
+                                logger.warning(f"[AUTH SKIP] Неверный пароль для {subdir}, пропускаем.")
+                                continue
+                        else:
+                            logger.debug(f"[AUTH CHECK] Ошибок не обнаружено для {subdir}, продолжаем.")
+
                         self.driver.click_element(By.XPATH, "//button[contains(text(), 'Выбрать')]", "[AUTH CLICK ELEMENT 'SELECT'] Нажата кнопка 'Выбрать'")
                         
                         #? Перед выходом, робот должен отработать весь необходимый функционал
@@ -146,23 +166,74 @@ class RobotKNP(BaseRobot):
         #? Делаем скриншот вне зависимости от отрицательного значения сальдо
         self.driver.take_screenshot("screenshots")
 
-
-        exit_button = self.driver.wait_for_element(By.XPATH, "//a[@title='Выход']", timeout=5)
-        if exit_button:
-            self.driver.click_element(By.XPATH, "//a[@title='Выход']", "[END CLICK] Нажата кнопка 'Выход'")
-        else:
-            logger.error("[EXIT ERROR] Кнопка 'Выход' не найдена")
-
-        logger.debug('Спи..')
-        time.sleep(5)
-
         logger.info("[BALANCE INFO] Лицевой счет сальдо проверен, процесс завершен")
+        #? DEBUG
+        # exit_button = self.driver.wait_for_element(By.XPATH, "//a[@title='Выход']", timeout=5)
+        # if exit_button:
+        #     self.driver.click_element(By.XPATH, "//a[@title='Выход']", "[END CLICK] Нажата кнопка 'Выход'")
+        # else:
+        #     logger.error("[EXIT ERROR] Кнопка 'Выход' не найдена")
+
+        # logger.debug('Спи..')
+        # time.sleep(5)
+        #? DEBUG
         
 
-        # time.sleep(1)
-        
         # ---=================================================================================--
 
+
+    def process_documents(self):
+        """Обработка документов из таблицы."""
+        try:
+            # self.state = RobotState.PROCESSING_DOCUMENTS
+            logger.info(f"[DOCS STATE CHANGE] Состояние изменено: {self.state.value}")
+            
+            # Ждем загрузку таблицы
+            table = self.driver.wait_for_element(
+                By.ID, 
+                "appModalTable",
+                "[DOCS WAIT TABLE] Ожидание загрузки таблицы документов"
+            )
+            
+            # Получаем все строки таблицы
+            rows = table.find_elements(By.TAG_NAME, "tr")[1:]
+            
+            for row in rows:
+                try:
+                    # Получаем ячейку с документом (5-я колонка)
+                    doc_cell = row.find_elements(By.TAG_NAME, "td")[4]
+                    
+                    # Проверяем тип документа и обрабатываем соответственно
+                    link_element = doc_cell.find_elements(By.TAG_NAME, "a")
+                    button_element = doc_cell.find_elements(By.TAG_NAME, "button")
+                    
+                    if link_element:
+                        # Документ со ссылкой
+                        doc_url = link_element[0].get_attribute("href")
+                        doc_text = link_element[0].text
+                        logger.info(f"[DOCS LINK FOUND] Найден документ со ссылкой: {doc_text}")
+                        # Здесь логика обработки документа со ссылкой
+                        
+                    elif button_element:
+                        # Документ с кнопкой
+                        doc_text = button_element[0].text
+                        logger.info(f"[DOCS BUTTON FOUND] Найден документ с кнопкой: {doc_text}")
+                        # Здесь логика обработки документа с кнопкой
+                    
+                    # Можно добавить паузу между обработкой документов
+                    time.sleep(1)
+                    
+                except Exception as doc_err:
+                    logger.error(f"[DOCS PROCESS ERROR] Ошибка при обработке документа: {doc_err}")
+                    continue
+            
+            # self.state = RobotState.DOCUMENTS_PROCESSED
+            logger.info(f"[DOCS STATE CHANGE] Состояние изменено: {self.state.value}")
+            
+        except Exception as err:
+            # self.state = RobotState.ERROR
+            logger.error(f"[DOCS PROCESS ERROR] Общая ошибка при обработке документов: {err}")
+            raise
 
 
 #! ПОСЛЕ ВХОДА В СИСТЕМУ

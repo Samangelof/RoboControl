@@ -11,10 +11,11 @@ from selenium.common.exceptions import (
     ElementClickInterceptedException,
     WebDriverException,
 )
+from threading import Lock
 import time
-from settings.logger import setup_logger
 import os
 from datetime import datetime
+from settings.logger import setup_logger
 
 
 logger = setup_logger(__name__)
@@ -26,6 +27,8 @@ class SeleniumDriver:
         self.driver = None
         self.headless = headless  # Режим без интерфейса (headless)
         self.wait_time = wait_time  # Время ожидания для поиска элементов
+        self._lock = Lock()
+
 
     def _configure_driver(self) -> webdriver.Chrome:
         """Настройка и запуск драйвера с использованием Remote Debugging"""
@@ -53,10 +56,10 @@ class SeleniumDriver:
         return driver
 
     def get_driver(self) -> webdriver.Chrome:
-        """Возвращает экземпляр настроенного драйвера."""
-        if not self.driver:
-            logger.info("[SETUP DRIVE] Настройка драйвера")
-            self.driver = self._configure_driver()
+        with self._lock:
+            if not self.driver:
+                logger.info("[SETUP DRIVE] Настройка драйвера")
+                self.driver = self._configure_driver()
         return self.driver
 
     def quit(self):
@@ -91,15 +94,18 @@ class SeleniumDriver:
             return False
 
 
-    def find_element(self, by: By, value: str):
+    def find_element(self, by: By, value: str, wait_time=15):
         """Поиск элемента с ожиданием"""
         try:
             logger.info(f"Поиск элемента: {value}")
-            return WebDriverWait(self.get_driver(), self.wait_time).until(
+            return WebDriverWait(self.get_driver(), wait_time).until(
                 EC.presence_of_element_located((by, value))
             )
+        except TimeoutException:
+            logger.debug(f"Элемент не найден: {value}")
+            return None
         except Exception as e:
-            logger.error(f"Ошибка при поиске элемента {value}: {e}")
+            logger.debug(f"Ошибка при поиске элемента {value}: {e}")
             return None
 
     def find_elements(self, by: By, value: str):
@@ -141,7 +147,11 @@ class SeleniumDriver:
             
             # element.click()
             # Использую клик по элементам через js, т.к selenium может не видеть элементы
-            self.driver.execute_script("arguments[0].click();", element)
+            try:
+                element.click()
+            except Exception:
+                self.driver.execute_script("arguments[0].click();", element)
+
             if log_message:
                 logger.info(log_message)
         except NoSuchElementException:
@@ -166,13 +176,13 @@ class SeleniumDriver:
 
     #! Переработать указана хардкодная папка со скринам
     #! (обсуждаемо) у каждой эцп, своя папка в которая хранятся все данные 
-    def take_screenshot(self, name: str = "screenshot"):
+    def take_screenshot(self, name: str = "screenshot", folder: str="screenshots"):
         """Сохраняет скриншот текущего экрана в папку screenshots/"""
         if not os.path.exists("screenshots"):
             os.makedirs("screenshots")
 
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        filepath = f"screenshots/{name}_{timestamp}.png"
+        filepath = f"{folder}/{name}_{timestamp}.png"
 
         try:
             self.get_driver().save_screenshot(filepath)

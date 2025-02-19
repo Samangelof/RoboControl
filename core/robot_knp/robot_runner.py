@@ -32,9 +32,13 @@ def start_robot_service_knp(robot: RobotKNP, selected_path: str) -> bool:
         run_data["authentication_status"] = "success"
 
         # [BALANCE]
-        robot.balance_personal_accounts()
-        logger.info("[BALANCE SUCCESS] Проверка сальдо прошла успешно")
+        # robot.balance_personal_accounts()
+        # logger.info("[BALANCE SUCCESS] Проверка сальдо прошла успешно")
         
+        # [DOCUMENTS]
+        # robot.process_documents()
+        # logger.info("[DOCUMENTS SUCCESS] Процесс с документами прошел успешно")
+
         # [END]
         run_data["status"] = "success"
         logger.info("[GGWP] Робот успешно завершил все этапы запуска")
