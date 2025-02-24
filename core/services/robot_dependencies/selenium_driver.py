@@ -15,6 +15,8 @@ from threading import Lock
 import time
 import os
 from datetime import datetime
+import json
+import pathlib
 from settings.logger import setup_logger
 
 
@@ -23,16 +25,42 @@ logger = setup_logger(__name__)
 
 
 class SeleniumDriver:
-    def __init__(self, headless: bool = False, wait_time: int = 15):
+    def __init__(self, headless: bool = False, wait_time: int = 15, save_path: str = None):
         self.driver = None
         self.headless = headless  # Режим без интерфейса (headless)
         self.wait_time = wait_time  # Время ожидания для поиска элементов
         self._lock = Lock()
 
+        # Динамический путь сохранения файлов (делаю абсолютным)
+        self.save_path = pathlib.Path(save_path).resolve() if save_path else (pathlib.Path.cwd() / 'data').resolve()
+        self.save_path.mkdir(parents=True, exist_ok=True)
+
+        logger.info(f"[SETUP SAVE PATH] Директория для сохранения файлов: {self.save_path}")
+
 
     def _configure_driver(self) -> webdriver.Chrome:
         """Настройка и запуск драйвера с использованием Remote Debugging"""
         chrome_options = Options()
+
+        settings = {
+            "recentDestinations": [{
+                "id": "Save as PDF",
+                "origin": "local",
+                "account": "",
+            }],
+            "selectedDestinationId": "Save as PDF",
+            "version": 2
+        }
+
+
+        prefs = {
+            'printing.print_preview_sticky_settings.appState': json.dumps(settings),
+            'savefile.default_directory': str(self.save_path),
+        }
+
+        chrome_options.add_experimental_option('prefs', prefs)
+        chrome_options.add_argument('--kiosk-printing')
+
         if self.headless:
             chrome_options.add_argument("--disable-gpu")
             chrome_options.add_argument("--disable-features=IsolateOrigins")
@@ -42,7 +70,14 @@ class SeleniumDriver:
             chrome_options.add_argument("--disable-dev-shm-usage")
             chrome_options.add_argument("--disable-extensions")
             chrome_options.add_argument("--disable-update")
-        
+
+            #* User-Agent идентифицирует браузер перед сервером
+            #? это заголовок от обычного десктопного Chrome 114.
+            #? Если нужен настоящий, можно взять наш:
+            #? Открыть DevTools (F12) → вкладка Network
+            #? Выбрать любой запрос и найти заголовок User-Agent
+            #? Подставить его в код, чтобы Selenium выглядел как наш браузер
+            chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.5735.199 Safari/537.36")
 
         start_time = time.time()
         try:
@@ -84,14 +119,15 @@ class SeleniumDriver:
         """Ожидает появления элемента на странице в течении 10 секунд"""
         timeout = timeout or self.wait_time
         try:
-            WebDriverWait(self.get_driver(), timeout).until(
+            element = WebDriverWait(self.get_driver(), timeout).until(
                 EC.presence_of_element_located((by, value))
             )
             logger.info(f"[WAIT] Элемент найден: {value}")
-            return True
+            return element
         except TimeoutException:
             logger.warning(f"[WAIT] Элемент не появился за {timeout} секунд: {value}")
-            return False
+            return None
+            
 
 
     def find_element(self, by: By, value: str, wait_time=15):
@@ -154,6 +190,8 @@ class SeleniumDriver:
 
             if log_message:
                 logger.info(log_message)
+
+            return True
         except NoSuchElementException:
             logger.error(f"[ERROR] Элемент с селектором '{value}' не найден.")
         except ElementClickInterceptedException:
@@ -164,6 +202,7 @@ class SeleniumDriver:
             logger.error(f"[ERROR] WebDriver ошибка при взаимодействии с элементом '{value}': {str(e)}")
         except Exception as e:
             logger.error(f"[ERROR] Неизвестная ошибка при клике по элементу '{value}': {str(e)}")
+            return False
 
     def send_keys(self, by: By, value: str, keys: str):
         """Отправка текста в поле ввода"""
@@ -198,6 +237,22 @@ class SeleniumDriver:
         except Exception as e:
             logger.error(f"[ERROR EXECUTE SCRIPT] Ошибка при выполнении скрипта: {e}")
             raise
+
+    def switch_to_window(self, index):
+        """Переключение вкладки по индексу"""
+        try:
+            self.driver.switch_to.window(self.driver.window_handles[index]) 
+            logger.info(f"[TAB SWITCH] Переключился на вкладку с индексом {index}")
+        except IndexError:
+            logger.error(f"[TAB SWITCH ERROR] Вкладка с индексом {index} не найдена")
+
+    def switch_to_last_tab(self):
+        """Переключение на последнюю открытую вкладку"""
+        try:
+            self.driver.switch_to.window(self.driver.window_handles[-1])
+            logger.info("[TAB SWITCH] Переключился на последнюю вкладку")
+        except IndexError:
+            logger.error("[TAB SWITCH ERROR] Нет открытых вкладок для переключения")
 
     def refresh(self):
         try:

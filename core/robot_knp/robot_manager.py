@@ -1,15 +1,11 @@
 import time 
 import os
 import pygetwindow as gw
-import pyautogui
-import pyperclip
-from core.services.robot_dependencies.selenium_driver import SeleniumDriver
 from core.services.robot_dependencies.selenium_scripts import WINDOW_ACTIVITY_SCRIPT
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.action_chains import ActionChains
-from selenium.common.exceptions import NoSuchElementException
 from core.robot_isna.robot_state import RobotState
 from core.base_robot import BaseRobot
+from core.robot_knp.handlers.docs_process import DocsProcess
 from core.services.utils.common_utils import (
     extract_password_from_folder_name, 
     find_eds_file,
@@ -25,6 +21,12 @@ logger = setup_logger(__name__)
 class RobotKNP(BaseRobot):
     KNP_URL = 'https://cabinet.kgd.gov.kz/knp/main/index'
     BALANCE_PERSONAL_ACCOUNTS_URL = "https://cabinet.kgd.gov.kz/knp/p_accounts/card/"
+    DOCS_URL = "https://cabinet.kgd.gov.kz/knp/notifications/registry/"
+    
+    #? Задать уникальную папку для сохранения файлов 
+    def __init__(self):
+        super().__init__(save_path="core/robot_knp/data")
+        self.docs_process = DocsProcess(self.driver)
 
     def navigation_proccess(self):
         """Начать навигацию."""
@@ -98,6 +100,20 @@ class RobotKNP(BaseRobot):
 
                         self.driver.click_element(By.XPATH, "//button[contains(text(), 'Выбрать')]", "[AUTH CLICK ELEMENT 'SELECT'] Нажата кнопка 'Выбрать'")
                         
+                        #! --------------------------------------------------------------------------------------------------------------------------------------
+                        #! Если окно с авторизацией пропадет и больше ничего не происходит
+                        # next_step_loaded = self.driver.wait_for_element(By.XPATH, "//div[contains(@class, 'userInfo')]", timeout=5)
+
+                        # if not next_step_loaded:
+                        #     logger.warning("[AUTH WARNING] После нажатия 'Выбрать' ничего не произошло, возможна ошибка.")
+                        #     alert = self.driver.find_element(By.XPATH, "//div[contains(@class, 'alert-danger')]", wait_time=2)
+                        #     if alert:
+                        #         logger.error(f"[AUTH ERROR] Найдено сообщение об ошибке: {alert.text.strip()}")
+                        #     else:
+                        #         logger.error("[AUTH ERROR] Непредвиденное поведение: окно закрылось, но нет ошибки и результата.")
+                        #     return
+                        #! --------------------------------------------------------------------------------------------------------------------------------------
+
                         #? Перед выходом, робот должен отработать весь необходимый функционал
                         
                         # todo: выход должен быть реализован в конце, как и нажатие на кнопку входа по эцп
@@ -133,27 +149,27 @@ class RobotKNP(BaseRobot):
 
 
         self.driver.click_element(By.XPATH, "(//button[contains(text(), 'Обновить страницу')])[1]", "[BALANCE CLICK ELEMENT 'Обновить страницу'] Нажата кнопка 'Обновить страницу'")
-        # self.driver.click_element(
-        #     By.XPATH, 
-        #     "//button[contains(@class, 'btn-primary') and contains(text(), 'Запросить сальдо ЛС')]", 
-        #     "[BALANCE CLICK ELEMENT 'Запросить сальдо ЛС'] Нажата кнопка 'Запросить сальдо ЛС'"
-        # )
+        self.driver.click_element(
+            By.XPATH, 
+            "//button[contains(@class, 'btn-primary') and contains(text(), 'Запросить сальдо ЛС')]", 
+            "[BALANCE CLICK ELEMENT 'Запросить сальдо ЛС'] Нажата кнопка 'Запросить сальдо ЛС'"
+        )
         # ---=================================================================================--
         #? ПОСЛЕ ЗАПРОСА НА САЛЬДО ВЫЙДЕТ МОДАЛЬНОЕ ОКНО
         #? КОТОРОЕ НУЖНО ПОДТВЕРДИТЬ НАЖАТИЕМ НА КНОПКУ ОК
         #? ИЛИ ОБРАБОТАТЬ ЭТО ОКНО, ЕСЛИ НЕ ПОЯВИТСЯ ОКНО
-        # ok_xpath = "//button[contains(@class, 'btn btn-primary') and contains(text(), 'OK')]"
-        # close_css = ".modal-content .close"
+        ok_xpath = "//button[contains(@class, 'btn btn-primary') and contains(text(), 'OK')]"
+        close_css = ".modal-content .close"
 
-        # ok_button = self.driver.find_element(By.XPATH, ok_xpath)
-        # close_button = self.driver.find_element(By.CSS_SELECTOR, close_css)
+        ok_button = self.driver.find_element(By.XPATH, ok_xpath)
+        close_button = self.driver.find_element(By.CSS_SELECTOR, close_css)
 
-        # if ok_button:
-        #     self.driver.click_element(By.XPATH, ok_xpath, "[SELENIUM] Нажата кнопка 'OK'")
-        # elif close_button:
-        #     self.driver.click_element(By.CSS_SELECTOR, close_css, "[SELENIUM] Закрыто модальное окно с ошибкой")
-        # else:
-        #     logger.error("[ERROR] Ни кнопка 'OK', ни кнопка закрытия не найдены.")
+        if ok_button:
+            self.driver.click_element(By.XPATH, ok_xpath, "[SELENIUM] Нажата кнопка 'OK'")
+        elif close_button:
+            self.driver.click_element(By.CSS_SELECTOR, close_css, "[SELENIUM] Закрыто модальное окно с ошибкой")
+        else:
+            logger.error("[ERROR] Ни кнопка 'OK', ни кнопка закрытия не найдены.")
 
         #? Нахожу элемент до которого буду скролить
         if self.driver.wait_for_element(By.ID, "dataTable"):
@@ -183,57 +199,44 @@ class RobotKNP(BaseRobot):
 
 
     def process_documents(self):
-        """Обработка документов из таблицы."""
+        """Обрабатывает документы из таблицы"""
+        logger.info("--- Чиназес ---")
+
+        if not self.docs_process._check_user_info():
+            return
+        
+        self.driver.navigate_to_url(self.DOCS_URL)
+
         try:
-            # self.state = RobotState.PROCESSING_DOCUMENTS
             logger.info(f"[DOCS STATE CHANGE] Состояние изменено: {self.state.value}")
-            
-            # Ждем загрузку таблицы
-            table = self.driver.wait_for_element(
-                By.ID, 
-                "appModalTable",
-                "[DOCS WAIT TABLE] Ожидание загрузки таблицы документов"
-            )
-            
-            # Получаем все строки таблицы
+
+            if not self.docs_process._click_search_button():
+                return
+
+            table = self.docs_process._get_documents_table()
+            if not table:
+                return
+
             rows = table.find_elements(By.TAG_NAME, "tr")[1:]
-            
+            if len(rows) <= 1:
+                logger.warning("[DOCS TABLE EMPTY] В таблице нет данных для обработки")
+                return
+
             for row in rows:
-                try:
-                    # Получаем ячейку с документом (5-я колонка)
-                    doc_cell = row.find_elements(By.TAG_NAME, "td")[4]
-                    
-                    # Проверяем тип документа и обрабатываем соответственно
-                    link_element = doc_cell.find_elements(By.TAG_NAME, "a")
-                    button_element = doc_cell.find_elements(By.TAG_NAME, "button")
-                    
-                    if link_element:
-                        # Документ со ссылкой
-                        doc_url = link_element[0].get_attribute("href")
-                        doc_text = link_element[0].text
-                        logger.info(f"[DOCS LINK FOUND] Найден документ со ссылкой: {doc_text}")
-                        # Здесь логика обработки документа со ссылкой
-                        
-                    elif button_element:
-                        # Документ с кнопкой
-                        doc_text = button_element[0].text
-                        logger.info(f"[DOCS BUTTON FOUND] Найден документ с кнопкой: {doc_text}")
-                        # Здесь логика обработки документа с кнопкой
-                    
-                    # Можно добавить паузу между обработкой документов
-                    time.sleep(1)
-                    
-                except Exception as doc_err:
-                    logger.error(f"[DOCS PROCESS ERROR] Ошибка при обработке документа: {doc_err}")
-                    continue
-            
-            # self.state = RobotState.DOCUMENTS_PROCESSED
+                self.docs_process._process_document_row(row)
+
             logger.info(f"[DOCS STATE CHANGE] Состояние изменено: {self.state.value}")
-            
+
         except Exception as err:
-            # self.state = RobotState.ERROR
             logger.error(f"[DOCS PROCESS ERROR] Общая ошибка при обработке документов: {err}")
             raise
+    
+    def exit(self):
+        exit_button = self.driver.wait_for_element(By.XPATH, "//a[@title='Выход']", timeout=5)
+        if exit_button:
+            self.driver.click_element(By.XPATH, "//a[@title='Выход']", "[END CLICK] Нажата кнопка 'Выход'")
+        else:
+            logger.error("[EXIT ERROR] Кнопка 'Выход' не найдена")
 
 
 #! ПОСЛЕ ВХОДА В СИСТЕМУ

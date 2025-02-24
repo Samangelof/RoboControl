@@ -110,6 +110,9 @@ class GuiRoboControl(customtkinter.CTk):
             height=50,
             width=200,
             cursor="hand2",
+            fg_color="#04ff00",
+            text_color="black",
+            hover_color="darkred",
             command=self.check_and_start_robot
         )
         self.button_run.grid(row=1, column=0, padx=20, pady=10)

@@ -36,12 +36,14 @@ def start_robot_service_knp(robot: RobotKNP, selected_path: str) -> bool:
         # logger.info("[BALANCE SUCCESS] Проверка сальдо прошла успешно")
         
         # [DOCUMENTS]
-        # robot.process_documents()
-        # logger.info("[DOCUMENTS SUCCESS] Процесс с документами прошел успешно")
+        logger.info("[DOCUMENTS SUCCESS] Процесс с документами начался успешно")
+        robot.process_documents()
+        logger.info("[DOCUMENTS SUCCESS] Процесс с документами прошел успешно")
 
         # [END]
-        run_data["status"] = "success"
-        logger.info("[GGWP] Робот успешно завершил все этапы запуска")
+        # robot.exit()
+        # run_data["status"] = "success"
+        # logger.info("[GGWP] Робот успешно завершил все этапы запуска")
 
         # SAVE LAUNCH DATA
         end_time = datetime.now()

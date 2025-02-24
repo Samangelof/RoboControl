@@ -11,5 +11,3 @@ def check_ncalayer_running():
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
             continue
     return False
-
-

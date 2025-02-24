@@ -6,8 +6,8 @@ from core.services.robot_dependencies.selenium_driver import SeleniumDriver
 
 
 class BaseRobot(ABC):
-    def __init__(self):
-        self.driver = SeleniumDriver()
+    def __init__(self, save_path: str = None):
+        self.driver = SeleniumDriver(save_path=save_path)
         # self.state = RobotState.NOT_STARTED
 
     @abstractmethod

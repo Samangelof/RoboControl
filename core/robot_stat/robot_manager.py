@@ -1,13 +1,10 @@
 # core/robot_stat/robot_manager.py
 import time 
-import os
 import pygetwindow as gw
 import pyautogui
 import pyperclip
-from core.services.robot_dependencies.selenium_driver import SeleniumDriver
 from core.services.robot_dependencies.selenium_scripts import WINDOW_ACTIVITY_SCRIPT
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.action_chains import ActionChains
 from core.services.utils.common_utils import (
     wait_for_window,
     close_eds_window,
