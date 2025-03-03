@@ -23,19 +23,22 @@ from settings.logger import setup_logger
 logger = setup_logger(__name__)
 
 
-
 class SeleniumDriver:
-    def __init__(self, headless: bool = False, wait_time: int = 15, save_path: str = None):
+    def __init__(self, headless: bool = False, wait_time: int = 30, save_path: str = None):
         self.driver = None
         self.headless = headless  # Режим без интерфейса (headless)
         self.wait_time = wait_time  # Время ожидания для поиска элементов
         self._lock = Lock()
 
-        # Динамический путь сохранения файлов (делаю абсолютным)
-        self.save_path = pathlib.Path(save_path).resolve() if save_path else (pathlib.Path.cwd() / 'data').resolve()
-        self.save_path.mkdir(parents=True, exist_ok=True)
+        # создает папку только если передан save_path
+        if save_path:
+            self.save_path = pathlib.Path(save_path).resolve()
+            self.save_path.mkdir(parents=True, exist_ok=True)
+            logger.info(f"[SETUP SAVE PATH] Директория для сохранения файлов: {self.save_path}")
+        else:
+            # В случае если путь не задан
+            self.save_path = None
 
-        logger.info(f"[SETUP SAVE PATH] Директория для сохранения файлов: {self.save_path}")
 
 
     def _configure_driver(self) -> webdriver.Chrome:
@@ -72,7 +75,7 @@ class SeleniumDriver:
             chrome_options.add_argument("--disable-update")
 
             #* User-Agent идентифицирует браузер перед сервером
-            #? это заголовок от обычного десктопного Chrome 114.
+            #? это заголовок от обычного десктопного Chrome 114
             #? Если нужен настоящий, можно взять наш:
             #? Открыть DevTools (F12) → вкладка Network
             #? Выбрать любой запрос и найти заголовок User-Agent

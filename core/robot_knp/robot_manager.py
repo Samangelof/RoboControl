@@ -200,29 +200,47 @@ class RobotKNP(BaseRobot):
 
     def process_documents(self):
         """Обрабатывает документы из таблицы"""
-        logger.info("--- Чиназес ---")
 
         if not self.docs_process._check_user_info():
             return
-        
+
         self.driver.navigate_to_url(self.DOCS_URL)
 
         try:
             logger.info(f"[DOCS STATE CHANGE] Состояние изменено: {self.state.value}")
 
             if not self.docs_process._click_search_button():
+                logger.warning("[DOCS SEARCH] Не удалось нажать кнопку 'Найти'")
+                return
+
+            if not self.driver.wait_for_element(By.TAG_NAME, "table", timeout=15):
+                logger.warning("[DOCS TABLE WAIT] Таблица не появилась после ожидания")
                 return
 
             table = self.docs_process._get_documents_table()
             if not table:
+                logger.warning("[DOCS TABLE MISSING] Таблица не найдена после ожидания")
+                return
+
+            # Ожидание появления данных в таблице
+            wait_data_in_table = self.driver.wait_for_element(By.XPATH, "//table/tbody/tr[not(contains(@class, 'b-table-empty-row'))]", timeout=10)
+            if not wait_data_in_table:
+                logger.warning("[DOCS TABLE EMPTY] В таблице нет данных после ожидания")
                 return
 
             rows = table.find_elements(By.TAG_NAME, "tr")[1:]
-            if len(rows) <= 1:
+            if not rows:
                 logger.warning("[DOCS TABLE EMPTY] В таблице нет данных для обработки")
                 return
 
             for row in rows:
+                cells = row.find_elements(By.TAG_NAME, "td")
+                logger.info(f"[DOCS ROW DEBUG] Найдено {len(cells)} колонок в строке: {[cell.text for cell in cells]}")
+                
+                if len(cells) < 2: 
+                    logger.warning(f"[DOCS PROCESS WARNING] В строке недостаточно колонок: {len(cells)}")
+                    continue
+
                 self.docs_process._process_document_row(row)
 
             logger.info(f"[DOCS STATE CHANGE] Состояние изменено: {self.state.value}")
@@ -230,6 +248,7 @@ class RobotKNP(BaseRobot):
         except Exception as err:
             logger.error(f"[DOCS PROCESS ERROR] Общая ошибка при обработке документов: {err}")
             raise
+
     
     def exit(self):
         exit_button = self.driver.wait_for_element(By.XPATH, "//a[@title='Выход']", timeout=5)

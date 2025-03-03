@@ -112,3 +112,9 @@ def find_eds_file_and_password(selected_path):
                 logger.debug(f'[AUTH EXTRACT PASSWORD] Извлеченный пароль={password[:2]}***')
                 return eds_file, password
     return None, None
+
+def escape_xpath_text(text):
+    """Экранировать текст для безопасного использования в XPath."""
+    if '"' in text:
+        return "concat('{}')".format(text.replace("'", "', \"'\", '"))
+    return f'"{text}"'

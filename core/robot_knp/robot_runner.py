@@ -1,10 +1,12 @@
 # core/robot_runner.py
 import time
 from datetime import datetime
+import asyncio
 from core.robot_knp.robot_manager import RobotKNP
 from core.services.robot_dependencies.dependency import check_ncalayer_running
 from core.services.tracking.tracker import start_robot_with_logging
 from core.services.utils.json_storage import save_run_data
+from core.robot_knp.handlers.send_bot import executor, dp, send_files
 from settings.logger import setup_logger
 
 
@@ -18,7 +20,7 @@ def start_robot_service_knp(robot: RobotKNP, selected_path: str) -> bool:
         return False
 
     try:
-        # lOGGING START LAUNCH ROBOT
+        # [WRITE LOGGING] lOGGING START LAUNCH ROBOT
         run_data = start_robot_with_logging(robot, selected_path)
 
         # [START]
@@ -32,6 +34,7 @@ def start_robot_service_knp(robot: RobotKNP, selected_path: str) -> bool:
         run_data["authentication_status"] = "success"
 
         # [BALANCE]
+        # logger.info("[BALANCE SUCCESS] Проверка сальдо началась успешно")
         # robot.balance_personal_accounts()
         # logger.info("[BALANCE SUCCESS] Проверка сальдо прошла успешно")
         
@@ -39,11 +42,20 @@ def start_robot_service_knp(robot: RobotKNP, selected_path: str) -> bool:
         logger.info("[DOCUMENTS SUCCESS] Процесс с документами начался успешно")
         robot.process_documents()
         logger.info("[DOCUMENTS SUCCESS] Процесс с документами прошел успешно")
-
+        
         # [END]
-        # robot.exit()
-        # run_data["status"] = "success"
-        # logger.info("[GGWP] Робот успешно завершил все этапы запуска")
+        robot.exit()
+        logger.info("[DOCUMENTS SUCCESS] Процесс с документами прошел успешно")
+        run_data["status"] = "success"
+        logger.info("[GGWP] Робот успешно завершил все этапы!")
+
+            
+        logger.info("[SEND FILES TG START] Отправляю все файлы в тг")
+        try:
+            asyncio.run(send_files(dp, "Пакет файлов"))
+            logger.info("[SEND FILES TG SUCCESS] Все файлы успешно отправлены в тг")
+        except Exception as e:
+            logger.error(f"[SEND FILES TG ERROR] Ошибка при отправке файлов: {e}")
 
         # SAVE LAUNCH DATA
         end_time = datetime.now()
