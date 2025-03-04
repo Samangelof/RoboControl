@@ -1,7 +1,7 @@
-import customtkinter
 import os
 import requests
 import winsound
+import customtkinter
 from PIL import Image
 from customtkinter import filedialog
 from core.services.utils.json_storage import save_path_to_json, load_config
@@ -47,9 +47,9 @@ class GuiRoboControl(customtkinter.CTk):
         
         self.env_file = ".env" 
 
-        # Загрузка изображений (поддержка светлого и тёмного режимов)
-        BASE_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))  # Корневая директория проекта
-        image_path = os.path.join(BASE_DIR, "resources", "images")
+        # Загрузка изображений (поддержка светлого и темного режимов)
+        BASE_DIR = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+        image_path = os.path.join(BASE_DIR, "gui", "resources", "images")
         self.logo_image = customtkinter.CTkImage(Image.open(os.path.join(image_path, "CustomTkinter_logo_single.png")), size=(26, 26))
         self.large_test_image = customtkinter.CTkImage(Image.open(os.path.join(image_path, "large_test_image.png")), size=(500, 150))
         self.icon_run = customtkinter.CTkImage(Image.open(os.path.join(image_path, "run.png")), size=(30, 30))
@@ -83,7 +83,7 @@ class GuiRoboControl(customtkinter.CTk):
                                                       image=self.chat_image, anchor="w", command=self.frame_2_button_event)
         self.frame_2_button.grid(row=2, column=0, sticky="ew")
 
-        self.frame_3_button = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, height=40, border_spacing=10, text="Frame 3",
+        self.frame_3_button = customtkinter.CTkButton(self.navigation_frame, corner_radius=0, height=40, border_spacing=10, text="Инструкция (В разработке)",
                                                       fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"),
                                                       image=self.add_user_image, anchor="w", command=self.frame_3_button_event)
         self.frame_3_button.grid(row=3, column=0, sticky="ew")

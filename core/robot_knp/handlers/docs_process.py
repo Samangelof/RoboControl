@@ -2,6 +2,7 @@ import time
 from selenium.webdriver.common.by import By
 from settings.logger import setup_logger
 from core.services.utils.common_utils import escape_xpath_text
+from core.services.database.db_operations import add_document, document_exists
 from core.robot_knp.handlers.pop_up_process import handle_no_data_popup
 
 
@@ -47,7 +48,15 @@ class DocsProcess:
             if len(td_elements) < 5:
                 logger.warning(f"[DOCS PROCESS WARNING] В строке недостаточно колонок: {len(td_elements)}")
                 return
+            # ---======================================================================================--
         
+            doc_number = td_elements[0].text.strip()
+
+            if document_exists(self.db, doc_number):
+                logger.info(f"[DOCS SKIP] Документ {doc_number} уже обработан, пропускаем.")
+                return
+            # ---======================================================================================--
+
             doc_cell = td_elements[4]
             link_element = doc_cell.find_elements(By.TAG_NAME, "a")
             button_element = doc_cell.find_elements(By.TAG_NAME, "button")
@@ -63,6 +72,9 @@ class DocsProcess:
                 logger.info(f"[DOCS BUTTON FOUND] Найден документ с кнопкой: {button_text}")
                 self._process_button_document(button_xpath)
                 
+
+            add_document(self.db, doc_number)
+
         except Exception as err:
             logger.error(f"[DOCS PROCESS ERROR] Ошибка при обработке строки: {err}")
 
