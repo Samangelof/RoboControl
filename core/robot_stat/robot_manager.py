@@ -2,6 +2,7 @@
 import time 
 import os
 import pygetwindow as gw
+from pywinauto import Application
 import pyautogui
 import pyperclip
 from core.services.robot_dependencies.selenium_driver import SeleniumDriver
@@ -15,7 +16,7 @@ from core.services.utils.common_utils import (
 )
 from settings.logger import setup_logger
 from core.base_robot import BaseRobot
-
+from selenium.common.exceptions import NoSuchElementException
 
 logger = setup_logger(__name__)
 
@@ -57,7 +58,7 @@ class RobotStat(BaseRobot):
             eds_file, password = find_eds_file_and_password(selected_path)
 
             if eds_file and password:
-                authorize_face(eds_file, password)
+                authorize_face(eds_file, password, self.driver)
             else:
                 logger.error("[AUTH ERROR] Файл ЭЦП или пароль не найдены")
         
@@ -83,11 +84,27 @@ def _activate_window_and_input(window_title, input_text, action_description):
     else:
         logger.debug(f'[AUTH WINDOW NOT FOUND] Окно "{window_title}" не найдено.')
         return False
+    
+def key_list_window(window_title, action_description):
+    window = wait_for_window(window_title)
+    if window:
+        logger.debug(f"[AUTH] Обработка окна: {window_title}")
+        app = Application().connect(title = window_title)
+        window = app.window(title = window_title)
+        pyautogui.press("tab")
+        pyautogui.press("space")
+        logger.debug(f'[AUTH SUCCESS] {action_description} выполнено успешно.')
+        return True
+    else:
+        logger.debug(f'[AUTH WINDOW NOT FOUND] Окно "{window_title}" не найдено.')
+        return True
 
-def authorize_face(file_to_path, file_password):
+
+def authorize_face(file_to_path, file_password, driver):
     try:
         logger.debug(f'[AUTH FACE SUCCESS] path={file_to_path}, password={file_password[:2]}***')
-
+        # Step 0: Проверка на наличие окна списка ключей
+        key_list_window("Список ключей", "Выбрать новый ключ")
         # Step 1: Активация окна для выбора ЭЦП
         if not _activate_window_and_input('Открыть файл', file_to_path, 'Копирование пути в буфер обмена'):
             raise Exception("Окно выбора файла не найдено")
@@ -108,6 +125,16 @@ def authorize_face(file_to_path, file_password):
         else:
             logger.info('[AUTH PASSWORD WINDOW NOT FOUND] Окно для подписи не найдено в течение времени ожидания')
             raise Exception("Окно подтверждения подписи не найдено")
+        try:
+            error_element = driver.find_element(By.ID, "errorMsgSpan")
+            error_text = error_element.text
+
+            if "Срок действия Сертификата истек!" in error_text:
+                logger.debug("Срок действия сертификата истек!")
+        except NoSuchElementException:
+                logger.debug("Ошибки нет, продолжаем работу")
+
+        
 
     except Exception as Err:
         logger.error(f'[AUTH FACE ERROR] Произошла ошибка при авторизации: {Err}')
