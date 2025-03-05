@@ -1,17 +1,12 @@
 import time 
 import os
 import pygetwindow as gw
-from core.services.robot_dependencies.selenium_scripts import WINDOW_ACTIVITY_SCRIPT
 from selenium.webdriver.common.by import By
+from core.services.robot_dependencies.selenium_scripts import WINDOW_ACTIVITY_SCRIPT
 from core.robot_isna.robot_state import RobotState
 from core.base_robot import BaseRobot
 from core.robot_knp.handlers.docs_process import DocsProcess
-from core.services.utils.common_utils import (
-    extract_password_from_folder_name, 
-    find_eds_file,
-    wait_for_window,
-    close_eds_window
-)
+from core.services.utils.common_utils import extract_password_from_folder_name, find_eds_file
 from settings.logger import setup_logger
 
 

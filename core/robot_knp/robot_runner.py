@@ -39,23 +39,25 @@ def start_robot_service_knp(robot: RobotKNP, selected_path: str) -> bool:
         # logger.info("[BALANCE SUCCESS] Проверка сальдо прошла успешно")
         
         # [DOCUMENTS]
-        logger.info("[DOCUMENTS SUCCESS] Процесс с документами начался успешно")
+        logger.info("[DOCUMENTS START] Процесс с документами начался успешно")
         robot.process_documents()
         logger.info("[DOCUMENTS SUCCESS] Процесс с документами прошел успешно")
         
         # [END]
+        logger.info("[EXIT START] Начался процесс выхода из системы")
         robot.exit()
-        logger.info("[DOCUMENTS SUCCESS] Процесс с документами прошел успешно")
+        logger.info("[EXIT SUCCESS] Процесс с документами прошел успешно")
         run_data["status"] = "success"
-        logger.info("[GGWP] Робот успешно завершил все этапы!")
-
-            
         logger.info("[SEND FILES TG START] Отправляю все файлы в тг")
+
         try:
             asyncio.run(send_files(dp, "Пакет файлов"))
             logger.info("[SEND FILES TG SUCCESS] Все файлы успешно отправлены в тг")
         except Exception as e:
             logger.error(f"[SEND FILES TG ERROR] Ошибка при отправке файлов: {e}")
+
+        logger.info("[GGWP] Робот успешно завершил все этапы!")
+
 
         # SAVE LAUNCH DATA
         end_time = datetime.now()
@@ -66,4 +68,5 @@ def start_robot_service_knp(robot: RobotKNP, selected_path: str) -> bool:
         return True
     except Exception as Err:
         logger.error(f"[ERROR RUN ROBOT (start_robot_service_knp)] Ошибка при запуске робота: {Err}")
+        run_data["status"] = "FATAL_RUN_ROBOT"
         return False

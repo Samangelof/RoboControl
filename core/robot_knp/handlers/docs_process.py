@@ -4,6 +4,7 @@ from settings.logger import setup_logger
 from core.services.utils.common_utils import escape_xpath_text
 from core.services.database.db_operations import add_document, document_exists
 from core.robot_knp.handlers.pop_up_process import handle_no_data_popup
+from core.services.database.db_init import get_db
 
 
 logger = setup_logger(__name__)
@@ -12,6 +13,7 @@ logger = setup_logger(__name__)
 class DocsProcess:
     def __init__(self, driver):
         self.driver = driver
+        self.db = get_db()
 
     def _check_user_info(self):
         """Проверка наличия информации о пользователе."""
@@ -51,7 +53,6 @@ class DocsProcess:
             # ---======================================================================================--
         
             doc_number = td_elements[0].text.strip()
-
             if document_exists(self.db, doc_number):
                 logger.info(f"[DOCS SKIP] Документ {doc_number} уже обработан, пропускаем.")
                 return
@@ -72,7 +73,6 @@ class DocsProcess:
                 logger.info(f"[DOCS BUTTON FOUND] Найден документ с кнопкой: {button_text}")
                 self._process_button_document(button_xpath)
                 
-
             add_document(self.db, doc_number)
 
         except Exception as err:
@@ -110,29 +110,13 @@ class DocsProcess:
         #? Две попытки, если появится окно об (Отсутствии сведения по запросу)
         for attempt in range(2):
             self.driver.click_element(By.XPATH, btn_xpath, log_message=f"[DOC CLICKED] Кликнули на документ, попытка {attempt + 1}")
-            if not handle_no_data_popup():
-                break
-            logger.warning("[DOCS WARNING] Окно 'Отсутствуют сведения по запросу' появилось, повторяем попытку")
-        else:
-            logger.error("[DOCS ERROR] Данные отсутствуют дважды, пропускаем документ")
-            # Выход из метода, если окно появилось два раза
-            return
-        try:
-            # появление модального окна
-            self.driver.wait_for_element(By.CLASS_NAME, "modal-content")
-            logger.info("[MODAL OPENED] Модальное окно найдено")
 
-            # кнопка "Печать" в модальном окне
-            self.driver.click_element(By.XPATH, ".//button[contains(text(), 'Печать')]", 
-                            log_message="[PRINT CLICKED] Кликнули 'Печать'", 
-                            wait_for_visibility=True)
+            if not handle_no_data_popup(self.driver):
+                break  # Если окна нет — выйти из цикла
 
-            # кнопка "Отмена" через твой метод
-            self.driver.click_element(By.XPATH, ".//button[contains(text(), 'Отмена')]", 
-                            log_message="[CANCEL CLICKED] Кликнули 'Отмена', закрываем модальное окно", 
-                            wait_for_visibility=True)
+            logger.warning("[DOCS WARNING] Окно 'Отсутствуют сведения по запросу' появилось, выполняем восстановительные действия")
 
-            # ---======================================================================================--
+            # === ВОССТАНОВИТЕЛЬНЫЕ ДЕЙСТВИЯ ===
             self.driver.refresh()
             logger.info("[PAGE REFRESH] Страница перезагружена")
 
@@ -149,7 +133,27 @@ class DocsProcess:
             if not self.driver.wait_for_element(By.TAG_NAME, "table", timeout=15):
                 logger.warning("[DOCS TABLE WAIT] Таблица не появилась после повторного поиска")
                 return
-            # ---======================================================================================--
+            # === ==================================== ===
+
+        else:
+            # Если окно появилось два раза, выхйти из метода
+            logger.error("[DOCS ERROR] Данные отсутствуют дважды, пропускаем документ")
+            return
+
+        try:
+            # появление модального окна
+            self.driver.wait_for_element(By.CLASS_NAME, "modal-content")
+            logger.info("[MODAL OPENED] Модальное окно найдено")
+
+            # кнопка "Печать" в модальном окне
+            self.driver.click_element(By.XPATH, ".//button[contains(text(), 'Печать')]", 
+                            log_message="[PRINT CLICKED] Кликнули 'Печать'", 
+                            wait_for_visibility=True)
+
+            # кнопка "Отмена" через твой метод
+            self.driver.click_element(By.XPATH, ".//button[contains(text(), 'Отмена')]", 
+                            log_message="[CANCEL CLICKED] Кликнули 'Отмена', закрываем модальное окно", 
+                            wait_for_visibility=True)
 
         except Exception as err:
             logger.error(f"[MODAL ERROR] Ошибка при работе с модальным окном: {err}")
