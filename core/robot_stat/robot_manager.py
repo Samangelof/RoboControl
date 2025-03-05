@@ -18,6 +18,7 @@ from settings.logger import setup_logger
 from core.base_robot import BaseRobot
 from selenium.common.exceptions import NoSuchElementException
 
+
 logger = setup_logger(__name__)
 
 
@@ -86,18 +87,26 @@ def _activate_window_and_input(window_title, input_text, action_description):
         return False
     
 def key_list_window(window_title, action_description):
-    window = wait_for_window(window_title)
-    if window:
-        logger.debug(f"[AUTH] Обработка окна: {window_title}")
-        app = Application().connect(title = window_title)
-        window = app.window(title = window_title)
-        pyautogui.press("tab")
-        pyautogui.press("space")
-        logger.debug(f'[AUTH SUCCESS] {action_description} выполнено успешно.')
-        return True
-    else:
-        logger.debug(f'[AUTH WINDOW NOT FOUND] Окно "{window_title}" не найдено.')
-        return True
+    #todo: Марк: Добавил таймаут в 2с вместо 20с (дефолт)
+    #todo: обернул в try-except
+    #todo: Добавил sleep на случай, если робот будет слишком быстр
+    try:
+        window = wait_for_window(window_title, timeout=2)
+        if window:
+            logger.debug(f"[AUTH] Обработка окна: {window_title}")
+            app = Application().connect(title=window_title)
+            window = app.window(title=window_title)
+            pyautogui.press("tab")
+            time.sleep(.3)
+            pyautogui.press("space")
+            logger.debug(f'[AUTH SUCCESS] {action_description} выполнено успешно.')
+            return True
+        else:
+            logger.debug(f'[AUTH WINDOW NOT FOUND] Окно "{window_title}" не найдено.')
+            return False
+    except Exception as e:
+        logger.error(f'[AUTH ERROR] Неизвестная ошибка при обработке окна "{window_title}": {e}')
+        return False
 
 
 def authorize_face(file_to_path, file_password, driver):
@@ -133,8 +142,6 @@ def authorize_face(file_to_path, file_password, driver):
                 logger.debug("Срок действия сертификата истек!")
         except NoSuchElementException:
                 logger.debug("Ошибки нет, продолжаем работу")
-
-        
 
     except Exception as Err:
         logger.error(f'[AUTH FACE ERROR] Произошла ошибка при авторизации: {Err}')
