@@ -196,6 +196,7 @@ class GuiRoboControl(customtkinter.CTk):
         # По умолчанию показываем главную страницу
         self.select_frame_by_name("home")
 
+    #!!! УБРАТЬ | НЕ ИСПОЛЬЗОВАТЬ .env !!!
     def update_env_variable(self, key: str, value: bool):
         """Обновляет переменную окружения в файле .env"""
         try:
@@ -209,6 +210,7 @@ class GuiRoboControl(customtkinter.CTk):
         except Exception as e:
             logger.error(f'Ошибка при обновлении переменной {key}: {str(e)}')
             self.show_error_message(f"Ошибка при обновлении настроек: {str(e)}")
+    #!!! УБРАТЬ | НЕ ИСПОЛЬЗОВАТЬ .env !!!
 
     def toggle_isna_event(self):
         """Обработчик события для тумблера ИСНА"""
@@ -313,8 +315,7 @@ class GuiRoboControl(customtkinter.CTk):
         
         logger.info(f"Запуск роботов в режимах: {', '.join(enabled_modes)}")
 
-
-
+        # ---------------------------------------------------------------------------------------------
         # Последовательный запуск роботов
         isna_success = self.run_robot("ИСНА", self.robot_isna, start_robot_service_isna, isna_enabled)
         if isna_enabled and not isna_success:

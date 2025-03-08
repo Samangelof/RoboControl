@@ -118,3 +118,18 @@ def escape_xpath_text(text):
     if '"' in text:
         return "concat('{}')".format(text.replace("'", "', \"'\", '"))
     return f'"{text}"'
+
+
+def remove_last_part(filename: str) -> str:
+    """
+    Удаляет пароль из названия файла ЭЦП.
+    Args:
+        filename: Название файла в формате "ЭЦП название пароль"
+    Returns:
+        Название файла без пароля
+    """
+    parts = filename.split()
+    if len(parts) > 1:
+        return ' '.join(parts[:-1])
+    else:
+        return filename

@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker
 from core.services.database.models import Base
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
-DB_PATH = f"sqlite:///{os.path.join(BASE_DIR, 'storage', 'documents_knp.db')}"
+DB_PATH = f"sqlite:///{os.path.join(BASE_DIR, 'storage', 'robocontrol.db')}"
 print(f'------------------------- {DB_PATH} -------------------------')
 
 engine = create_engine(DB_PATH)

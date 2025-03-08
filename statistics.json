@@ -790,5 +790,183 @@
         "authentication_status": "success",
         "end_time": "2025-03-05T15:53:56.000611",
         "duration": 66.824893
+    },
+    {
+        "run_id": "2025-03-07T04:39:39.073972",
+        "start_time": "2025-03-07T04:39:39.073972",
+        "parameters": {
+            "path": "C:/Users/Samangelof/Documents/эцп т"
+        },
+        "status": "success",
+        "navigation_status": "success",
+        "authentication_status": "success",
+        "end_time": "2025-03-07T04:40:40.979537",
+        "duration": 61.905565
+    },
+    {
+        "run_id": "2025-03-07T05:21:07.291019",
+        "start_time": "2025-03-07T05:21:07.291019",
+        "parameters": {
+            "path": "C:/Users/Samangelof/Documents/эцп т"
+        },
+        "status": "success",
+        "navigation_status": "success",
+        "authentication_status": "success",
+        "end_time": "2025-03-07T05:21:37.663791",
+        "duration": 30.372772
+    },
+    {
+        "run_id": "2025-03-07T05:36:07.043298",
+        "start_time": "2025-03-07T05:36:07.043298",
+        "parameters": {
+            "path": "C:/Users/Samangelof/Documents/эцп т"
+        },
+        "status": "success",
+        "navigation_status": "success",
+        "authentication_status": "success",
+        "end_time": "2025-03-07T05:36:37.781325",
+        "duration": 30.738027
+    },
+    {
+        "run_id": "2025-03-07T05:41:49.854095",
+        "start_time": "2025-03-07T05:41:49.854095",
+        "parameters": {
+            "path": "C:/Users/Samangelof/Documents/эцп т"
+        },
+        "status": "success",
+        "navigation_status": "success",
+        "authentication_status": "success",
+        "end_time": "2025-03-07T05:42:20.480642",
+        "duration": 30.626547
+    },
+    {
+        "run_id": "2025-03-07T05:44:20.509064",
+        "start_time": "2025-03-07T05:44:20.509064",
+        "parameters": {
+            "path": "C:/Users/Samangelof/Documents/эцп т"
+        },
+        "status": "success",
+        "navigation_status": "success",
+        "authentication_status": "success",
+        "end_time": "2025-03-07T05:44:51.698037",
+        "duration": 31.188973
+    },
+    {
+        "run_id": "2025-03-07T05:52:42.504564",
+        "start_time": "2025-03-07T05:52:42.504564",
+        "parameters": {
+            "path": "C:/Users/Samangelof/Documents/эцп т"
+        },
+        "status": "success",
+        "navigation_status": "success",
+        "authentication_status": "success",
+        "end_time": "2025-03-07T05:53:13.066443",
+        "duration": 30.561879
+    },
+    {
+        "run_id": "2025-03-07T05:57:25.645489",
+        "start_time": "2025-03-07T05:57:25.645489",
+        "parameters": {
+            "path": "C:/Users/Samangelof/Documents/эцп т"
+        },
+        "status": "success",
+        "navigation_status": "success",
+        "authentication_status": "success",
+        "end_time": "2025-03-07T05:57:57.070874",
+        "duration": 31.425385
+    },
+    {
+        "run_id": "2025-03-07T05:58:45.437283",
+        "start_time": "2025-03-07T05:58:45.437283",
+        "parameters": {
+            "path": "C:/Users/Samangelof/Documents/эцп т"
+        },
+        "status": "success",
+        "navigation_status": "success",
+        "authentication_status": "success",
+        "end_time": "2025-03-07T05:59:16.039262",
+        "duration": 30.601979
+    },
+    {
+        "run_id": "2025-03-07T06:00:03.044361",
+        "start_time": "2025-03-07T06:00:03.044361",
+        "parameters": {
+            "path": "C:/Users/Samangelof/Documents/эцп т"
+        },
+        "status": "success",
+        "navigation_status": "success",
+        "authentication_status": "success",
+        "end_time": "2025-03-07T06:00:34.928436",
+        "duration": 31.884075
+    },
+    {
+        "run_id": "2025-03-07T06:07:59.789859",
+        "start_time": "2025-03-07T06:07:59.789859",
+        "parameters": {
+            "path": "C:/Users/Samangelof/Documents/эцп т"
+        },
+        "status": "failure",
+        "navigation_status": "success",
+        "authentication_status": "failed"
+    },
+    {
+        "run_id": "2025-03-07T06:24:12.951389",
+        "start_time": "2025-03-07T06:24:12.951389",
+        "parameters": {
+            "path": "C:/Users/Samangelof/Documents/эцп т"
+        },
+        "status": "failure",
+        "navigation_status": "success",
+        "authentication_status": "failed"
+    },
+    {
+        "run_id": "2025-03-07T06:26:44.085520",
+        "start_time": "2025-03-07T06:26:44.085520",
+        "parameters": {
+            "path": "C:/Users/Samangelof/Documents/эцп т"
+        },
+        "status": "failure",
+        "navigation_status": "success",
+        "authentication_status": "failed"
+    },
+    {
+        "run_id": "2025-03-07T06:29:40.139636",
+        "start_time": "2025-03-07T06:29:40.139636",
+        "parameters": {
+            "path": "C:/Users/Samangelof/Documents/эцп т"
+        },
+        "status": "failure",
+        "navigation_status": "success",
+        "authentication_status": "failed"
+    },
+    {
+        "run_id": "2025-03-07T06:45:26.467802",
+        "start_time": "2025-03-07T06:45:26.467802",
+        "parameters": {
+            "path": "C:/Users/Samangelof/Documents/эцп т"
+        },
+        "status": "failure",
+        "navigation_status": "success",
+        "authentication_status": "auth_failed"
+    },
+    {
+        "run_id": "2025-03-07T06:45:59.029643",
+        "start_time": "2025-03-07T06:45:59.029643",
+        "parameters": {
+            "path": "C:/Users/Samangelof/Documents/эцп т"
+        },
+        "status": "failure",
+        "navigation_status": "success",
+        "authentication_status": "auth_failed"
+    },
+    {
+        "run_id": "2025-03-07T06:46:23.129916",
+        "start_time": "2025-03-07T06:46:23.129916",
+        "parameters": {
+            "path": "C:/Users/Samangelof/Documents/эцп т"
+        },
+        "status": "failure",
+        "navigation_status": "success",
+        "authentication_status": "auth_failed"
     }
 ]

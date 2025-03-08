@@ -6,7 +6,8 @@ from core.services.robot_dependencies.selenium_scripts import WINDOW_ACTIVITY_SC
 from core.robot_isna.robot_state import RobotState
 from core.base_robot import BaseRobot
 from core.robot_knp.handlers.docs_process import DocsProcess
-from core.services.utils.common_utils import extract_password_from_folder_name, find_eds_file
+from core.services.utils.common_utils import extract_password_from_folder_name, find_eds_file, remove_last_part
+from core.robot_knp.handlers.excel_process import ExcelManager
 from settings.logger import setup_logger
 
 
@@ -22,6 +23,7 @@ class RobotKNP(BaseRobot):
     def __init__(self):
         super().__init__(save_path="core/robot_knp/data")
         self.docs_process = DocsProcess(self.driver)
+        self.excel_process = ExcelManager("report.xlsx")
 
     def navigation_proccess(self):
         """Начать навигацию."""
@@ -57,6 +59,10 @@ class RobotKNP(BaseRobot):
                 logger.info(f'subdir={subdir}')
                 subdir_path = os.path.join(selected_path, subdir)
                 
+                # === -- Write excel -- ===
+                truncated_subdir = remove_last_part(subdir)
+                # === -- - -- ===
+
                 if os.path.isdir(subdir_path):
                     # Находим файл EDS с именем "AUTH_RSA256" или "GOST512"
                     eds_file = find_eds_file(subdir_path)
@@ -77,47 +83,38 @@ class RobotKNP(BaseRobot):
                         password_field.send_keys(password)
                         self.driver.click_element(By.XPATH, "//button[contains(text(), 'Ok') and not(@disabled)]", "[AUTH CLICK ELEMENT 'OK'] Нажата кнопка 'Ok'")
 
-                        # Проверяем появление ошибок
+                        #! --------------------------------------------------------------------------------------------------------------------------------------
+                        #! Проверка и Обработка ошибок
                         alert = self.driver.find_element(By.XPATH, "//div[contains(@class, 'alert-danger')]", wait_time=2)
+                        error_type = None
 
                         if alert:
                             alert_text = alert.text.strip() if alert.text else ""
 
                             if "Срок действия Вашего сертификата" in alert_text:
                                 logger.warning(f"[AUTH SKIP] Сертификат в {subdir} истек, пропускаем.")
-                                continue
+                                error_type = 'Сертификат истек'
 
                             if "Введите верный пароль" in alert_text:
                                 logger.warning(f"[AUTH SKIP] Неверный пароль для {subdir}, пропускаем.")
+                                error_type = 'Пароль неверный'
+
+                            if error_type:
+                                # cancel_button = self.driver.find_element(By.XPATH, "//button[contains(text(), 'Отмена')]", wait_time=2)
+                                # if cancel_button:
+                                #     self.driver.click_element("//button[contains(text(), 'Отмена')]", "[AUTH CLICK CANCEL] Нажата кнопка 'Отмена'")
+
+                                self.excel_process.write_data([truncated_subdir, error_type, error_type, error_type, 'wait func'])
                                 continue
+
                         else:
                             logger.debug(f"[AUTH CHECK] Ошибок не обнаружено для {subdir}, продолжаем.")
+                        #! --------------------------------------------------------------------------------------------------------------------------------------
 
                         self.driver.click_element(By.XPATH, "//button[contains(text(), 'Выбрать')]", "[AUTH CLICK ELEMENT 'SELECT'] Нажата кнопка 'Выбрать'")
                         
-                        #! --------------------------------------------------------------------------------------------------------------------------------------
-                        #! Если окно с авторизацией пропадет и больше ничего не происходит
-                        # next_step_loaded = self.driver.wait_for_element(By.XPATH, "//div[contains(@class, 'userInfo')]", timeout=5)
-
-                        # if not next_step_loaded:
-                        #     logger.warning("[AUTH WARNING] После нажатия 'Выбрать' ничего не произошло, возможна ошибка.")
-                        #     alert = self.driver.find_element(By.XPATH, "//div[contains(@class, 'alert-danger')]", wait_time=2)
-                        #     if alert:
-                        #         logger.error(f"[AUTH ERROR] Найдено сообщение об ошибке: {alert.text.strip()}")
-                        #     else:
-                        #         logger.error("[AUTH ERROR] Непредвиденное поведение: окно закрылось, но нет ошибки и результата.")
-                        #     return
-                        #! --------------------------------------------------------------------------------------------------------------------------------------
-
-                        #? Перед выходом, робот должен отработать весь необходимый функционал
-                        
-                        # todo: выход должен быть реализован в конце, как и нажатие на кнопку входа по эцп
-                        # self.driver.click_element(By.XPATH, "//a[@title='Выход']", "[END CLICK ELEMENT 'EXIT'] Нажата кнопка 'Выход'")
-                        # self.driver.click_element(By.XPATH, "//button[contains(text(), 'Войти по ЭЦП')]", "[START CLICK ELEMENT LOGIN EDS] 'Войти по ЭЦП'", wait_for_visibility=True)
-
             # --- = --- 
 
-            # Здесь должна быть логика авторизации
             logger.info("[AUTH SUCCESS] Авторизация выполнена успешно")
             self.state = RobotState.AUTH_COMPLETED
             logger.info(f"[AUTH STATE CHANGE] Состояние изменено: {self.state.value}")
