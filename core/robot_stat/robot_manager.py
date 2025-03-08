@@ -59,7 +59,7 @@ class RobotStat(BaseRobot):
             eds_file, password = find_eds_file_and_password(selected_path)
 
             if eds_file and password:
-                authorize_face(eds_file, password, SeleniumDriver)
+                authorize_face(eds_file, password, self.driver)
             else:
                 logger.error("[AUTH ERROR] Файл ЭЦП или пароль не найдены")
         
@@ -108,11 +108,13 @@ def key_list_window(window_title, action_description):
         logger.error(f'[AUTH ERROR] Неизвестная ошибка при обработке окна "{window_title}": {e}')
         return False
 
+
+# --
 def check_certificate_error(driver: SeleniumDriver):
     """Мгновенно проверяет наличие ошибки 'Срок действия Сертификата истек!'."""
     try:
-        error_element = driver.find_element(By.ID, "errorMsgSpan", wait_time=5)
-        if error_element and "Срок действия Сертификата истек!" in error_element.text:
+        error_element = driver.wait_for_element(By.ID, "errorMsgSpan", timeout=5)
+        if error_element:
             logger.warning("Обнаружена ошибка сертификата!")
             return True
     except NoSuchElementException:
@@ -127,11 +129,14 @@ def handle_certificate_error(driver: SeleniumDriver):
     # Проверяем, исчезла ли ошибка после перехода
     if check_certificate_error(driver):
         logger.error("Ошибка не исчезла после возврата на главный экран! Закрываем браузер.")
-        driver.quit()
+        # driver.quit()
     else:
         logger.info("Успешно вернулись на главный экран!")
+# --
 
-def authorize_face(file_to_path, file_password,driver):
+
+
+def authorize_face(file_to_path, file_password, driver):
     try:
         logger.debug(f'[AUTH FACE SUCCESS] path={file_to_path}, password={file_password[:2]}***')
         # Step 0: Проверка на наличие окна списка ключей
@@ -153,18 +158,13 @@ def authorize_face(file_to_path, file_password,driver):
             logger.debug('[AUTH SIGN ENTER] Нажатие Enter для подписи')
             pyautogui.press('enter')
             logger.debug('[AUTH SUCCESS] Подпись подтверждена.')
+
+            handle_certificate_error(driver)
+
         else:
             logger.info('[AUTH PASSWORD WINDOW NOT FOUND] Окно для подписи не найдено в течение времени ожидания')
-            raise Exception("Окно подтверждения подписи не найдено")
-        selenium_driver = SeleniumDriver()
 
-        if check_certificate_error(selenium_driver):
-            handle_certificate_error(selenium_driver)
-
-        selenium_driver.quit()
-
-        
-
+    
     except Exception as Err:
         logger.error(f'[AUTH FACE ERROR] Произошла ошибка при авторизации: {Err}')
         raise

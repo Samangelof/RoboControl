@@ -24,9 +24,9 @@ def start_robot_service_stat(robot: RobotStat, selected_path: str) -> bool:
         robot.authenticate_proccess(selected_path)
         logger.info("[AUTH SUCCESS] Авторизация завершена успешно")
         
-        logger.info("[REPORTS SUCCESS] Отчеты собраны началась успешно")
-        robot.reports_proccess()
-        logger.info("[REPORTS SUCCESS] Отчеты собраны завершена успешно")
+        # logger.info("[REPORTS SUCCESS] Отчеты собраны началась успешно")
+        # robot.reports_proccess()
+        # logger.info("[REPORTS SUCCESS] Отчеты собраны завершена успешно")
 
 
         # [END]
