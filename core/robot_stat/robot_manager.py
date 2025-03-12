@@ -15,22 +15,22 @@ from core.services.utils.common_utils import (
 )
 from settings.logger import setup_logger
 from core.base_robot import BaseRobot
-from selenium.common.exceptions import NoSuchElementException
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-JSON_FILE_PATH = os.path.join(BASE_DIR, "...", "error_log.json")
+screenshot_path = os.path.join(BASE_DIR, "..", "..", "resources", "error_password.png")
+screenshot_path = os.path.abspath(screenshot_path)
 
 logger = setup_logger(__name__)
 
 
 class RobotStat(BaseRobot):
-    KNP_URL = 'https://cabinet.stat.gov.kz/'
+    STAT_URL = 'https://cabinet.stat.gov.kz/'
 
     def navigation_proccess(self):
         """Выполнить навигацию"""
         try:
-            self.driver.navigate_to_url(self.KNP_URL)
+            self.driver.navigate_to_url(self.STAT_URL)
             
             self.driver.execute_script(WINDOW_ACTIVITY_SCRIPT)
             logger.info("[START OPEN URL] Открыл сайт: cabinet.stat.gov.kz")
@@ -48,7 +48,7 @@ class RobotStat(BaseRobot):
             logger.error(f"[START CLASS ROBOT] Ошибка при выполнении start_navigation: {Err}")
             self.driver.quit()
             raise
-    
+
     def authenticate_proccess(self, selected_path):
         """Выполнить авторизацию"""
         count = 0 # Счётчик проверенных эцп
@@ -63,7 +63,7 @@ class RobotStat(BaseRobot):
                 if os.path.isdir(subdir_path):
                     # Получаю файл ЭЦП и пароль
                     eds_file = find_eds_file(subdir_path)
-                    if is_certificate_in_json({"eds_file": os.path.basename(eds_file)}, "error_log.json"): # Проверка на корректность сертификата
+                    if is_certificate_in_json({"eds_file": os.path.basename(os.path.dirname(eds_file))}, "error_log.json"): # Проверка на корректность сертификата
                         logger.debug("[AUTH ERROR] Ошибка сертификата! Пропускаем...")
                         continue
                     password = extract_password_from_folder_name(subdir)
@@ -125,53 +125,6 @@ def key_list_window(window_title, action_description):
         return False
 
 
-def check_certificate_error(driver: SeleniumDriver, eds_file: str, json_file="error_log.json"):
-    """
-    Проверяет наличие ошибки истекшего сертификата и записывает её в JSON-файл,
-    если такого сертификата еще нет.
-
-    :param driver: Экземпляр SeleniumDriver
-    :param eds_file: Название файла ЭЦП
-    :param json_file: Путь к JSON-файлу для сохранения ошибки
-    :return: True, если ошибка найдена, иначе False
-    """
-    error_xpath = '//span[@id="errorMsgSpan"]'
-
-    try:
-        # Ожидаем появления ошибки (максимум 5 секунд)
-        if driver.wait_for_element(By.XPATH, error_xpath, timeout=5):
-            error_element = driver.find_element(By.XPATH, error_xpath)
-
-            # Получаем текст ошибки
-            error_text = error_element.text.strip()
-
-            if "Срок действия Сертификата истек" in error_text:
-                logger.error("[AUTH ERROR] Найдена ошибка сертификата: 'Срок действия Сертификата истек!'")
-
-                # Создаём JSON-данные
-                error_data = {
-                    "error": "Срок действия Сертификата истек!",
-                    "eds_file": os.path.basename(eds_file)  # Записываем только имя файла ЭЦП
-                }
-
-                # Проверяем, есть ли уже такой сертификат в JSON
-                if os.path.exists(json_file):
-                    if not is_certificate_in_json(error_data, json_file):
-                        append_error_to_json(error_data, json_file)
-                        logger.info(f"[JSON LOG] Ошибка с сертификатом {eds_file} добавлена в JSON")
-                    else:
-                        logger.info(f"[JSON LOG] Ошибка с сертификатом {eds_file} уже записана")
-                else:
-                    logger.info(f"[JSON LOG] Файл {json_file} отсутствует. Ошибка НЕ будет записана.")
-
-                return True
-            else:
-                logger.info(f"[INFO] Найдено сообщение, но его текст отличается: {error_text}")
-                return False
-
-    except Exception as e:
-        logger.error(f"[ERROR] Ошибка при проверке сертификата: {e}")
-        return False
 
 
 def is_certificate_in_json(error_data, json_file="error_log.json"):
@@ -275,7 +228,7 @@ def authorize_face(file_to_path, file_password, driver):
             logger.debug('[AUTH SIGN ENTER] Нажатие Enter для подписи')
             pyautogui.press('enter')
             logger.debug('[AUTH SUCCESS] Подпись подтверждена.')
-            check_certificate_error(driver, file_to_path)
+            
 
         else:
             logger.info('[AUTH PASSWORD WINDOW NOT FOUND] Окно для подписи не найдено в течение времени ожидания')
