@@ -6,22 +6,16 @@ from core.services.robot_dependencies.dependency import check_ncalayer_running
 from core.services.tracking.tracker import start_robot_with_logging
 from core.services.utils.json_storage import save_run_data
 from settings.logger import setup_logger
-from core.robot_stat.robot_checker import (
-    check_navigation_proccess,
-    check_authenticate_proccess,
-)
-from core.services.robot_dependencies.selenium_driver import SeleniumDriver
+
 
 logger = setup_logger(__name__)
-driver = SeleniumDriver()
+
 
 def start_robot_service_stat(robot: RobotStat, selected_path: str) -> bool:
     """Проверка, запущен ли процесс NCALayer, и запуск робота"""    
     try:
-        # [Check]
-        logger.info("[CHECKING SUCCESS] Проверка ЭЦП началась успешно")
-        check_navigation_proccess(driver)
-        check_authenticate_proccess(driver, selected_path)
+        # [CHECK]
+        robot.check_certificates(selected_path)
         # [START]
         logger.info("[NAVIGATION SUCCESS] Навигация началась успешно")
         robot.navigation_proccess()
@@ -31,7 +25,6 @@ def start_robot_service_stat(robot: RobotStat, selected_path: str) -> bool:
         logger.info("[AUTH SUCCESS] Авторизация началась успешно")
         robot.authenticate_proccess(selected_path)
         logger.info("[AUTH SUCCESS] Авторизация завершена успешно")
-        
         # logger.info("[REPORTS SUCCESS] Отчеты собраны началась успешно")
         # robot.reports_proccess()
         # logger.info("[REPORTS SUCCESS] Отчеты собраны завершена успешно")

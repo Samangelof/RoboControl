@@ -74,8 +74,11 @@ def check_authenticate_proccess(driver, selected_path):
                                     "error": "Срок действия Сертификата истек!",
                                     "eds_file": os.path.basename(os.path.dirname(eds_file)) # Записываем только папку файла ЭЦП
                                 }
-                                append_error_to_json(error_data)
-                                continue
+                                if is_certificate_in_json(error_data):
+                                    continue
+                                else:
+                                    append_error_to_json(error_data)
+                                    continue
 
                             if "Введите верный пароль" in alert_text:
                                 logger.warning(f"[AUTH SKIP] Неверный пароль для {subdir}, пропускаем.")
@@ -83,8 +86,12 @@ def check_authenticate_proccess(driver, selected_path):
                                     "error": "Неверный пароль",
                                     "eds_file": os.path.basename(os.path.dirname(eds_file)) # Записываем только папку файла ЭЦП
                                 }
-                                append_error_to_json(error_data)
-                                continue
+
+                                if is_certificate_in_json(error_data):
+                                    continue
+                                else:
+                                    append_error_to_json(error_data)
+                                    continue
                         else:
                             logger.debug(f"[AUTH CHECK] Ошибок не обнаружено для {subdir}, продолжаем.")
 
@@ -92,6 +99,17 @@ def check_authenticate_proccess(driver, selected_path):
     except Exception as Err:
         logger.error(f"[CLASS ROBOT] Ошибка при выполнении authenticate: {Err}")
         raise
+
+def clear_json_file(json_file="error_log.json"):
+    """
+    Очищает JSON-файл перед записью новых ошибок.
+    """
+    try:
+        with open(json_file, "w", encoding="utf-8") as file:
+            json.dump([], file, indent=4, ensure_ascii=False)  # Создаём пустой список
+        logger.info(f"[JSON CLEAR] Файл {json_file} очищен перед началом записи.")
+    except Exception as e:
+        logger.error(f"[ERROR JSON] Ошибка при очистке JSON-файла: {e}")
 
 
 def append_error_to_json(error_data, json_file="error_log.json"):
@@ -125,3 +143,35 @@ def append_error_to_json(error_data, json_file="error_log.json"):
 
     except Exception as e:
         logger.error(f"[ERROR JSON] Ошибка при записи в JSON-файл: {e}")
+
+
+
+def is_certificate_in_json(error_data, json_file="error_log.json"):
+    """
+    Проверяет, есть ли уже такой сертификат в JSON.
+
+    :param error_data: Данные об ошибке {"error": "...", "eds_file": "..."}
+    :param json_file: Путь к JSON-файлу
+    :return: True, если сертификат уже есть, иначе False
+    """
+    if not os.path.exists(json_file):
+        return False
+
+    try:
+        with open(json_file, "r", encoding="utf-8") as file:
+            try:
+                data = json.load(file)
+                if not isinstance(data, list):
+                    return False  # JSON не в ожидаемом формате
+            except json.JSONDecodeError:
+                return False  # Если файл пуст или битый
+
+        # Проверяем, есть ли уже такой сертификат
+        for entry in data:
+            if entry["eds_file"] == error_data["eds_file"]:
+                return True
+
+    except Exception as e:
+        logger.error(f"[ERROR JSON] Ошибка при проверке сертификата в JSON: {e}")
+
+    return False

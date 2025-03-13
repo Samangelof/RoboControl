@@ -13,19 +13,24 @@ from core.services.utils.common_utils import (
     find_eds_file,
     extract_password_from_folder_name,
 )
+from core.robot_stat.robot_checker import (
+    check_navigation_proccess,
+    check_authenticate_proccess,
+    clear_json_file
+)
 from settings.logger import setup_logger
 from core.base_robot import BaseRobot
 
-
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-screenshot_path = os.path.join(BASE_DIR, "..", "..", "resources", "error_password.png")
-screenshot_path = os.path.abspath(screenshot_path)
 
 logger = setup_logger(__name__)
 
 
 class RobotStat(BaseRobot):
     STAT_URL = 'https://cabinet.stat.gov.kz/'
+    def check_certificates(self, selected_path):
+        clear_json_file()
+        check_navigation_proccess(self.driver)
+        check_authenticate_proccess(self.driver, selected_path)
 
     def navigation_proccess(self):
         """Выполнить навигацию"""
@@ -42,7 +47,6 @@ class RobotStat(BaseRobot):
             self.driver.click_element(By.XPATH, '//input[@type="checkbox" and @name="lawAlertCheck" and @id="lawAlertCheck"]')
 
             self.driver.click_element(By.XPATH, '//input[@type="submit" and @id="loginButton" and @value="Войти в систему"]', wait_for_visibility=True)
-
 
         except Exception as Err:
             logger.error(f"[START CLASS ROBOT] Ошибка при выполнении start_navigation: {Err}")
@@ -71,10 +75,9 @@ class RobotStat(BaseRobot):
                     if eds_file and password:
                         if count >= 1:
                             self.navigation_proccess() # Повторная навигация для следующих ЭЦП
-                        authorize_face(eds_file, password,self.driver)
-                        self.driver.wait_for_element(By.XPATH, '//a[contains(@onclick, "onLogoutClick")]') # Ожидание кнопки выйти
-                        self.driver.click_element(By.XPATH, '//a[contains(@onclick, "onLogoutClick")]', log_message="Клик по кнопке выхода") # Нажатие на кноку выйти
-                        time.sleep(2)
+                        authorize_face(eds_file, password)
+                        self.reports_proccess()
+                        self.logout_process()
                         count += 1
                 else:
                     logger.error("[AUTH ERROR] Файл ЭЦП или пароль не найдены")
@@ -83,7 +86,20 @@ class RobotStat(BaseRobot):
             logger.error(f"[AUTH ERROR] Произошла ошибка при авторизации: {e}")
 
     def reports_proccess(self):
-        self.driver.click_element(By.XPATH, '//span[@class="x-tab-inner x-tab-inner-center" and text()="Мои отчёты"]')
+        reports_tab_xpath = "//span[@id='tab-1168-btnInnerEl' and contains(text(), 'Мои отчёты')]"
+        if not self.driver.wait_for_element(By.XPATH, reports_tab_xpath, timeout=2):
+            logger.warning(f"[TIMEOUT] Вкладка 'Мои отчёты' не найдена за 2 секунды.")
+            return False
+
+        # Кликаем по вкладке
+        self.driver.click_element(By.XPATH, reports_tab_xpath, log_message="Клик по вкладке 'Мои отчёты'")
+        logger.info("[REPORTS] Навигация на отчёты была выполнена успешно")
+    
+    def logout_process(self):
+        self.driver.wait_for_element(By.XPATH, '//a[contains(@onclick, "onLogoutClick")]') # Ожидание кнопки выйти
+        self.driver.click_element(By.XPATH, '//a[contains(@onclick, "onLogoutClick")]', log_message="Клик по кнопке выхода") # Нажатие на кноку выйти
+        time.sleep(2)
+    
 
 
 
@@ -158,37 +174,7 @@ def is_certificate_in_json(error_data, json_file="error_log.json"):
     return False
 
 
-def append_error_to_json(error_data, json_file="error_log.json"):
-    """
-    Добавляет новую ошибку в JSON-файл, если он существует.
 
-    :param error_data: Словарь с данными об ошибке
-    :param json_file: Путь к JSON-файлу
-    """
-    try:
-        if os.path.exists(json_file):
-            with open(json_file, "r+", encoding="utf-8") as file:
-                try:
-                    data = json.load(file)
-                    if not isinstance(data, list):
-                        data = []  # Если файл поврежден, создаём пустой список
-                except json.JSONDecodeError:
-                    data = []  # Если файл пуст или битый
-
-                # Добавляем новую ошибку
-                data.append(error_data)
-
-                # Перезаписываем JSON без создания нового файла
-                file.seek(0)
-                json.dump(data, file, indent=4, ensure_ascii=False)
-                file.truncate()
-
-            logger.info(f"[JSON LOG] Ошибка сохранена в файл {json_file}")
-        else:
-            logger.warning(f"[JSON LOG] Файл {json_file} отсутствует. Ошибка НЕ записана.")
-
-    except Exception as e:
-        logger.error(f"[ERROR JSON] Ошибка при записи в JSON-файл: {e}")
 
 
 # def handle_certificate_error(driver: SeleniumDriver):
@@ -206,7 +192,7 @@ def append_error_to_json(error_data, json_file="error_log.json"):
 
 
 
-def authorize_face(file_to_path, file_password, driver):
+def authorize_face(file_to_path, file_password):
     try:
         logger.debug(f'[AUTH FACE SUCCESS] path={file_to_path}, password={file_password[:2]}***')
         # Step 0: Проверка на наличие окна списка ключей
