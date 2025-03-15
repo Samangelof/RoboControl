@@ -16,7 +16,8 @@ from core.services.utils.common_utils import (
 from core.robot_stat.robot_checker import (
     check_navigation_proccess,
     check_authenticate_proccess,
-    clear_json_file
+    clear_json_file,
+    append_element_to_json
 )
 from settings.logger import setup_logger
 from core.base_robot import BaseRobot
@@ -28,7 +29,8 @@ logger = setup_logger(__name__)
 class RobotStat(BaseRobot):
     STAT_URL = 'https://cabinet.stat.gov.kz/'
     def check_certificates(self, selected_path):
-        clear_json_file()
+        clear_json_file(json_file="error_log.json")
+        clear_json_file(json_file="reports.json")
         check_navigation_proccess(self.driver)
         check_authenticate_proccess(self.driver, selected_path)
 
@@ -87,13 +89,63 @@ class RobotStat(BaseRobot):
 
     def reports_proccess(self):
         reports_tab_xpath = "//span[@id='tab-1168-btnInnerEl' and contains(text(), 'Мои отчёты')]"
-        if not self.driver.wait_for_element(By.XPATH, reports_tab_xpath, timeout=2):
-            logger.warning(f"[TIMEOUT] Вкладка 'Мои отчёты' не найдена за 2 секунды.")
+        if not self.driver.wait_for_element(By.XPATH, reports_tab_xpath, timeout=5):
+            logger.warning(f"[TIMEOUT] Вкладка 'Мои отчёты' не найдена за 5 секунд.")
             return False
 
         # Кликаем по вкладке
         self.driver.click_element(By.XPATH, reports_tab_xpath, log_message="Клик по вкладке 'Мои отчёты'")
         logger.info("[REPORTS] Навигация на отчёты была выполнена успешно")
+
+        # ИСПРАВЛЕНО: Используем `find_elements()`, а не `wait_for_element()`
+        report_rows = self.driver.find_elements(By.XPATH, "//tr[contains(@class, 'x-grid-data-row')]")
+
+        # Проверяем, что найдены строки
+        if not report_rows:
+            logger.warning("[REPORTS] Строки с отчетами не найдены.")
+            return False
+
+        # Название компании
+        company_name_element = self.driver.find_element(By.ID, "tab_header_hd-textEl")
+        company_name = company_name_element.text.strip()
+        logger.info("[REPORTS] Название компании было скопировано успешно")
+
+        for row in report_rows:
+            try:
+                # Извлекаем данные
+                report_form_element = row.find_element(By.XPATH, ".//td[contains(@class, 'x-grid-cell-gridcolumn-1143')]")
+                report_form = report_form_element.text.strip()
+                logger.info("[REPORTS] Форма была скопирована успешно")
+
+                report_start_date_element = row.find_element(By.XPATH, ".//td[contains(@class, 'x-grid-cell-gridcolumn-1146')]")
+                report_start_date = report_start_date_element.text.strip()
+                logger.info("[REPORTS] Дата начала была скопирована успешно")
+
+                report_end_date_element = row.find_element(By.XPATH, ".//td[contains(@class, 'x-grid-cell-gridcolumn-1147')]")
+                report_end_date = report_end_date_element.text.strip()
+                logger.info("[REPORTS] Дата окончания была скопирована успешно")
+
+                report_notes_element = row.find_element(By.XPATH, ".//td[contains(@class, 'x-grid-cell-gridcolumn-1148')]")
+                report_notes = report_notes_element.text.strip()
+                logger.info("[REPORTS] Примечание было скопировано успешно")
+
+                report_status_element = row.find_element(By.XPATH, ".//td[contains(@class, 'x-grid-cell-gridcolumn-1149')]")
+                report_status = report_status_element.text.strip()
+                logger.info("[REPORTS] Статус был скопирован успешно")
+
+                # Проверяем условия: если статус "Не сдан" и примечаний нет
+                if report_status == "Не сдан" and report_notes in ["", " "]: 
+                    report = {
+                        "Название компании": company_name,
+                        "Форма": report_form,
+                        "Срок сдачи": f" от {report_start_date} до {report_end_date}",
+                        "Статус": report_status
+                    }
+                    append_element_to_json(report, json_file="reports.json")
+
+            except Exception as e:
+                logger.error(f"Ошибка при обработке строки: {e}")
+
     
     def logout_process(self):
         self.driver.wait_for_element(By.XPATH, '//a[contains(@onclick, "onLogoutClick")]') # Ожидание кнопки выйти

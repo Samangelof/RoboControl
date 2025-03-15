@@ -77,7 +77,7 @@ def check_authenticate_proccess(driver, selected_path):
                                 if is_certificate_in_json(error_data):
                                     continue
                                 else:
-                                    append_error_to_json(error_data)
+                                    append_element_to_json(error_data, json_file="error_log.json")
                                     continue
 
                             if "Введите верный пароль" in alert_text:
@@ -90,7 +90,7 @@ def check_authenticate_proccess(driver, selected_path):
                                 if is_certificate_in_json(error_data):
                                     continue
                                 else:
-                                    append_error_to_json(error_data)
+                                    append_element_to_json(error_data, json_file="error_log.json")
                                     continue
                         else:
                             logger.debug(f"[AUTH CHECK] Ошибок не обнаружено для {subdir}, продолжаем.")
@@ -112,7 +112,7 @@ def clear_json_file(json_file="error_log.json"):
         logger.error(f"[ERROR JSON] Ошибка при очистке JSON-файла: {e}")
 
 
-def append_error_to_json(error_data, json_file="error_log.json"):
+def append_element_to_json(error_data, json_file):
     """
     Добавляет новую ошибку в JSON-файл, если он существует.
 
@@ -137,9 +137,9 @@ def append_error_to_json(error_data, json_file="error_log.json"):
                 json.dump(data, file, indent=4, ensure_ascii=False)
                 file.truncate()
 
-            logger.info(f"[JSON LOG] Ошибка сохранена в файл {json_file}")
+            logger.info(f"[JSON LOG] Сохранено в файл {json_file}")
         else:
-            logger.warning(f"[JSON LOG] Файл {json_file} отсутствует. Ошибка НЕ записана.")
+            logger.warning(f"[JSON LOG] Файл {json_file} отсутствует. НЕ записано.")
 
     except Exception as e:
         logger.error(f"[ERROR JSON] Ошибка при записи в JSON-файл: {e}")
