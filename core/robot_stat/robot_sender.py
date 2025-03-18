@@ -1,6 +1,7 @@
 import os
 import json
 import asyncio
+import re
 from aiogram import Bot, Dispatcher, types
 from dotenv import load_dotenv
 from settings.logger import setup_logger
@@ -13,20 +14,28 @@ BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID_STAT")
 JSON_FILE = "reports.json"
 
+def extract_company_name(full_name):
+    """
+    Извлекает название компании, заключенное в кавычки.
+    """
+    match = re.search(r'"(.+)', full_name)  # Находит текст внутри кавычек
+    return match.group(1) if match else full_name  # Возвращает текст внутри кавычек, иначе оригинальное название
+
 def format_data(data):
     """
-    Форматирует JSON-данные в читаемое сообщение, поддерживает списки и словари.
+    Форматирует JSON-данные в читаемое HTML-сообщение для Telegram.
     """
-    message_lines = ["Данные:"]
-    
-    if isinstance(data, list):  # Если JSON - список
+    message_lines = ["<b>📊 Данные:</b>"]
+
+    if isinstance(data, list):  # Если JSON - список записей
         for index, item in enumerate(data, start=1):
             if isinstance(item, dict):  # Если элемент списка - словарь
-                message_lines.append(f"\n")
+                message_lines.append(f"\n<b>📌 Отчёт №{index}:</b>")  # 🔹 Теперь это "Отчёт"
                 for key, value in item.items():
-                    message_lines.append(f"{key}: {value}")
-            else:  # Если обычное значение (например, просто список строк или чисел)
-                message_lines.append(f"{index}. {item}")
+                    # Если это название компании, применяем обработку
+                    if key.lower() == "название компании":
+                        value = extract_company_name(value)
+                    message_lines.append(f"🔹 <b>{key}:</b> {value}")
     
     else:
         message_lines.append(str(data))  # Просто строка или число
@@ -47,7 +56,7 @@ async def send_data():
         message = format_data(data)
 
         # Отправляем сообщение в чат
-        await bot.send_message(CHAT_ID, message)
+        await bot.send_message(CHAT_ID, message, parse_mode="HTML")
         logger.info("[SEND SUCCESS] Отчёты отправлены успешно")
 
     except Exception as e:
