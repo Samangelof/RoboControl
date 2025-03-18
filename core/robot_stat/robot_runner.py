@@ -1,11 +1,13 @@
 # core/robot_stat/robot_runner.py
 import time
+import asyncio
 from datetime import datetime
 from core.robot_stat.robot_manager import RobotStat
 from core.services.robot_dependencies.dependency import check_ncalayer_running
 from core.services.tracking.tracker import start_robot_with_logging
 from core.services.utils.json_storage import save_run_data
 from settings.logger import setup_logger
+from core.robot_stat.robot_sender import send_data
 
 
 logger = setup_logger(__name__)
@@ -28,7 +30,7 @@ def start_robot_service_stat(robot: RobotStat, selected_path: str) -> bool:
         # logger.info("[REPORTS SUCCESS] Отчеты собраны началась успешно")
         # robot.reports_proccess()
         # logger.info("[REPORTS SUCCESS] Отчеты собраны завершена успешно")
-
+        asyncio.run(send_data())
 
         # [END]
         logger.info("[GGWP] Робот успешно завершил все этапы запуска")

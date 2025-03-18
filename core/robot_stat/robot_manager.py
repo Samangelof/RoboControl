@@ -1,11 +1,13 @@
 # core/robot_stat/robot_manager.py
 import time 
 import json
+import asyncio
 import os
 from pywinauto import Application
 import pyautogui
 import pyperclip
-from core.services.robot_dependencies.selenium_driver import SeleniumDriver
+from dotenv import load_dotenv
+from aiogram import Bot, Dispatcher, types
 from core.services.robot_dependencies.selenium_scripts import WINDOW_ACTIVITY_SCRIPT
 from selenium.webdriver.common.by import By
 from core.services.utils.common_utils import (
@@ -146,6 +148,7 @@ class RobotStat(BaseRobot):
             except Exception as e:
                 logger.error(f"Ошибка при обработке строки: {e}")
 
+
     
     def logout_process(self):
         self.driver.wait_for_element(By.XPATH, '//a[contains(@onclick, "onLogoutClick")]') # Ожидание кнопки выйти
@@ -229,18 +232,6 @@ def is_certificate_in_json(error_data, json_file="error_log.json"):
 
 
 
-# def handle_certificate_error(driver: SeleniumDriver):
-#     """Обрабатывает ошибку сертификата, отправляя пользователя на главный экран."""
-#     logger.info("🔄 Ошибка сертификата! Переход на главный экран...")
-#     driver.navigate_to_url('https://cabinet.stat.gov.kz/')
-
-#     # Проверяем, исчезла ли ошибка после перехода
-#     if check_certificate_error(driver):
-#         logger.error("Ошибка не исчезла после возврата на главный экран! Закрываем браузер.")
-#         # driver.quit()
-#     else:
-#         logger.info("Успешно вернулись на главный экран!")
-# # --
 
 
 
