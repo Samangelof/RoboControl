@@ -25,7 +25,7 @@ def format_data(data):
     """
     Форматирует JSON-данные в читаемое HTML-сообщение для Telegram.
     """
-    message_lines = ["<b>📊 Данные:</b>"]
+    message_lines = ["<b>📊 Отчёты:</b>"]
 
     if isinstance(data, list):  # Если JSON - список записей
         for index, item in enumerate(data, start=1):
