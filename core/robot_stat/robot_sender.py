@@ -2,13 +2,15 @@ import os
 import json
 import asyncio
 import re
-from aiogram import Bot, Dispatcher, types
+from aiogram import Bot, Dispatcher
 from dotenv import load_dotenv
 from settings.logger import setup_logger
+import datetime
 
 
 load_dotenv()
 logger = setup_logger(__name__)
+current_date = datetime.date.today().isoformat()
 
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHAT_ID = os.getenv("TELEGRAM_CHAT_ID_STAT")
@@ -25,7 +27,7 @@ def format_data(data):
     """
     Форматирует JSON-данные в читаемое HTML-сообщение для Telegram.
     """
-    message_lines = ["<b>📊 Отчёты:</b>"]
+    message_lines = [f"<b>📊 Отчёты {current_date}:</b>"]
 
     if isinstance(data, list):  # Если JSON - список записей
         for index, item in enumerate(data, start=1):
